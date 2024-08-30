@@ -57,6 +57,12 @@ public class CommonAPIWhatSteps {
         commonAPIHowSteps.getRequestWithNoTokenNoHeader(this.endPointValue);
     }
 
+    @When("User makes GET request with header and empty token")
+    public void getRequestWithHeaderNoToken()
+    {
+        commonAPIHowSteps.getRequestWithNoTokenNoHeader(this.endPointValue);
+    }
+
     @Then("Response should have a response code as $ExpectedResponseCode")
     public void expectedResponseCode(int expectedResponseCode)
     {
