@@ -1,0 +1,5 @@
+{
+  "validUserID":1,
+  "hostReqRes":"https://reqres.in",
+  "userDetails":"/api/users/{userID}"
+}
