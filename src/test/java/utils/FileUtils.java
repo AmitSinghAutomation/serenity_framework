@@ -4,6 +4,7 @@ import logger.Log;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.Scanner;
 
 public class FileUtils {
 
@@ -25,5 +26,24 @@ public class FileUtils {
           }
           return line;
       }
+
+    public String readFileFromGivenLocation(String filePath)
+    {
+        File file = new File(filePath);
+        String line = "";
+        Scanner scanner;
+        try
+        {
+            scanner = new Scanner(file);
+            while(scanner.hasNextLine())
+            {
+              line = line + scanner.nextLine();
+            }
+        } catch (FileNotFoundException e) {
+            Log.error("Error occurred while reading content from file: "+e.getMessage());
+        }
+        return line;
+    }
+
 
 }

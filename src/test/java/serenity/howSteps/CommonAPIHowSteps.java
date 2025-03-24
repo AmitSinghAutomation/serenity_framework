@@ -39,4 +39,10 @@ public class CommonAPIHowSteps {
         return jsonHashMap;
     }
 
+    public void postRequestWithNoTokenNoHeader(String endPoint, String inputJSON)
+    {
+        Response response = apiUtils.postRequestWithHeaders(this.hostReqRes, endPoint, inputJSON, GlobalRequest.getHeaders());
+        GlobalResponse.setResponse(response);
+        Log.info("Response for POST api: "+response.getBody().asString());
+    }
 }

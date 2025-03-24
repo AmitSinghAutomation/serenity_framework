@@ -24,6 +24,7 @@ public class CommonAPIWhatSteps {
     private int actualResponseCode;
     private String actualResponseBody;
     private String dataNotToCompare;
+    private String requestPayloadWithAPI;
 
     private JsonUtils jsonUtils = new JsonUtils();
     CommonAPIHowSteps commonAPIHowSteps = new CommonAPIHowSteps();
@@ -45,6 +46,22 @@ public class CommonAPIWhatSteps {
         Log.info("Complete endpoint is: "+endPointValue);
     }
 
+    @Given("User prepares endpoint as $EndPoint and request body using $RequestBody")
+    public void prepareEndPointWithRequestBody(String endPoint, String fileNameRequestBody,@Named("RequestBodyFolderName") String requestBodyFolderName)
+    {
+        Map<String, String> version = GlobalRequest.getHeaders();
+        if(version.containsKey("version") == true)
+        {
+         this.requestPayloadWithAPI = this.fileUtils.readFileFromGivenLocation(this.jsonUtils.getValueFromSerenityproperties("apiRequestBody.filePath") + requestBodyFolderName + File.separator + version.get("version") + File.separator + fileNameRequestBody);
+        }else
+        {
+            this.requestPayloadWithAPI = this.fileUtils.readFileFromGivenLocation(this.jsonUtils.getValueFromSerenityproperties("apiRequestBody.filePath") + requestBodyFolderName  + File.separator + fileNameRequestBody);
+        }
+        this.endPointAPI = jsonUtils.readJsonFile(endPoint);
+        Log.info("Request payload with api: "+this.requestPayloadWithAPI);
+        Log.info("Api endpoint is: "+this.endPointAPI);
+    }
+
     @Given("User has a request header for $HeaderName as $HeaderValue")
     public void setHeaderInGlobalRequest(String headerName, String headerValue)
     {
@@ -61,6 +78,12 @@ public class CommonAPIWhatSteps {
     public void getRequestWithHeaderNoToken()
     {
         commonAPIHowSteps.getRequestWithNoTokenNoHeader(this.endPointValue);
+    }
+
+    @When("User makes POST request")
+    public void postRequestWithNoTokenNoHeader()
+    {
+        commonAPIHowSteps.postRequestWithNoTokenNoHeader(this.endPointAPI, this.requestPayloadWithAPI);
     }
 
     @Then("Response should have a response code as $ExpectedResponseCode")
