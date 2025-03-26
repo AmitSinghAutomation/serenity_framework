@@ -86,6 +86,12 @@ public class CommonAPIWhatSteps {
         commonAPIHowSteps.postRequestWithNoTokenNoHeader(this.endPointAPI, this.requestPayloadWithAPI);
     }
 
+    @When("User makes DELETE request")
+    public void deleteRequestWithNoTokenAndWithHeader()
+    {
+        commonAPIHowSteps.deleteRequestWithNoTokenAndWithHeader(this.endPointValue);
+    }
+
     @Then("Response should have a response code as $ExpectedResponseCode")
     public void expectedResponseCode(int expectedResponseCode)
     {
@@ -115,6 +121,17 @@ public class CommonAPIWhatSteps {
         Log.info("Data Matched");
 
 
+    }
+
+    @Then("User store the parameter from response for $Key as $Value")
+    public void getValueFromResponseKey(String Key, String Value)
+    {
+        if(Key.equals("Blank") && Value.equals("Blank"))
+        {
+            return;
+        }
+        commonAPIHowSteps.getValueFromResponseKey(Key, Value, this.actualResponseBody);
+        Log.info("Value for: "+Key+" node is: "+System.getProperty(Value));
     }
 
 }

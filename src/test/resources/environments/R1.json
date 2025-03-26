@@ -1,7 +1,9 @@
 {
   "hostReqRes":"https://reqres.in",
   "userDetails":"/api/users/{userID}",
+  "deleteUser": "/api/users/{userID}",
   "createUser":"/api/users",
   "validUserID":1,
-  "invalidUserID":23
+  "invalidUserID":23,
+  "userIdToDelete":""
 }
