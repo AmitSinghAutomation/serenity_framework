@@ -4,6 +4,7 @@ import global.GlobalRequest;
 import global.GlobalResponse;
 import io.restassured.response.Response;
 import logger.Log;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import utils.ApiUtils;
 import utils.JsonUtils;
@@ -44,5 +45,36 @@ public class CommonAPIHowSteps {
         Response response = apiUtils.postRequestWithHeaders(this.hostReqRes, endPoint, inputJSON, GlobalRequest.getHeaders());
         GlobalResponse.setResponse(response);
         Log.info("Response for POST api: "+response.getBody().asString());
+    }
+
+    public void getValueFromResponseKey(String key, String value, String actualResponseBody)
+    {
+        String keyValue = getValueFromActualResponseJSON(actualResponseBody, key);
+        keyValue = keyValue.substring(keyValue.indexOf(":") + 1);
+        System.setProperty(value, keyValue);
+        Log.info("Value stored for key: "+value+" is: "+keyValue);
+    }
+
+    private String getValueFromActualResponseJSON(String actualResponseBody, String key)
+    {
+        String getValueFromKey = "";
+        if((actualResponseBody != null) || (key != null))
+        {
+           String result = actualResponseBody.contains(key)
+                           ? key + StringUtils.substringAfter(actualResponseBody, key)
+                           : actualResponseBody;
+           String [] stringArray = result.split(",");
+           String searchResult = stringArray[0];
+           String removeQuotesFromString = searchResult.replaceAll("\"","");
+           getValueFromKey = removeQuotesFromString;
+        }
+        return getValueFromKey;
+    }
+
+    public void deleteRequestWithNoTokenAndWithHeader(String endPoint)
+    {
+        Response response = apiUtils.deleteRequestWithHeaders(this.hostReqRes, endPoint, GlobalRequest.getHeaders());
+        GlobalResponse.setResponse(response);
+        Log.info("Response for DELETE api: "+response.getBody().asString());
     }
 }
