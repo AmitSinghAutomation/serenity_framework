@@ -86,6 +86,12 @@ public class CommonAPIWhatSteps {
         commonAPIHowSteps.postRequestWithNoTokenNoHeader(this.endPointAPI, this.requestPayloadWithAPI);
     }
 
+    @When("User makes PUT request")
+    public void putRequestWithNoTokenAndWithHeader()
+    {
+        commonAPIHowSteps.putRequestWithNoTokenAndWithHeader(this.endPointValue, this.requestPayloadWithAPI);
+    }
+
     @When("User makes DELETE request")
     public void deleteRequestWithNoTokenAndWithHeader()
     {

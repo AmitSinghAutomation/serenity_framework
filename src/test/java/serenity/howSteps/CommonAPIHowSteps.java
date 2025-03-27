@@ -77,4 +77,11 @@ public class CommonAPIHowSteps {
         GlobalResponse.setResponse(response);
         Log.info("Response for DELETE api: "+response.getBody().asString());
     }
+
+    public void putRequestWithNoTokenAndWithHeader(String endPointAPI, String requestPayloadWithAPI)
+    {
+        Response response = apiUtils.putRequestWithHeaders(this.hostReqRes, endPointAPI, requestPayloadWithAPI, GlobalRequest.getHeaders());
+        GlobalResponse.setResponse(response);
+        Log.info("Response for PUT api: "+response.getBody().asString());
+    }
 }
