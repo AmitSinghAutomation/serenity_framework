@@ -2,6 +2,7 @@
   "hostReqRes":"https://reqres.in",
   "userDetails":"/api/users/{userID}",
   "deleteUser": "/api/users/{userID}",
+  "updateUser": "/api/users/{userID}",
   "createUser":"/api/users",
   "validUserID":1,
   "invalidUserID":23,
