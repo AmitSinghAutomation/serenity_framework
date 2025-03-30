@@ -15,9 +15,15 @@ public class AcceptanceTestSuite extends SerenityStories {
     public AcceptanceTestSuite()
     {
         super();
-        if(!System.getProperty("storyName").isEmpty())
+        try
         {
-         findStoriesCalled(System.getProperty("storyName"));
+            if(!System.getProperty("storyName").isEmpty())
+            {
+                findStoriesCalled(System.getProperty("storyName"));
+            }
+        }catch (Exception e)
+        {
+            System.out.println("Story file name not found running through meta filter only!:-->"+e.getMessage());
         }
     }
 

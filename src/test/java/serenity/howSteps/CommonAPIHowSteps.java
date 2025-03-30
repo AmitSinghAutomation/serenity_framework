@@ -84,4 +84,11 @@ public class CommonAPIHowSteps {
         GlobalResponse.setResponse(response);
         Log.info("Response for PUT api: "+response.getBody().asString());
     }
+
+    public void patchRequestWithNoTokenAndWithHeader(String endPointValue, String requestPayloadWithAPI)
+    {
+        Response response = apiUtils.patchRequestWithHeaders(this.hostReqRes, endPointValue, requestPayloadWithAPI, GlobalRequest.getHeaders());
+        GlobalResponse.setResponse(response);
+        Log.info("Response for PATCH api: "+response.getBody().asString());
+    }
 }
