@@ -92,6 +92,12 @@ public class CommonAPIWhatSteps {
         commonAPIHowSteps.putRequestWithNoTokenAndWithHeader(this.endPointValue, this.requestPayloadWithAPI);
     }
 
+    @When("User makes PATCH request")
+    public void patchRequestWithNoTokenAndWithHeader()
+    {
+        commonAPIHowSteps.patchRequestWithNoTokenAndWithHeader(this.endPointValue, this.requestPayloadWithAPI);
+    }
+
     @When("User makes DELETE request")
     public void deleteRequestWithNoTokenAndWithHeader()
     {
