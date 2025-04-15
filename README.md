@@ -20,3 +20,9 @@ clean install -DexeEnvironment=QA -s settings.xml -Dmetafilter=+API1
 
 Command for executing bases on multiple tag with no story file name:
 clean install -DexeEnvironment=QA -s settings.xml -Dmetafilter=+API1,+API2
+
+This framework also include table concept where we provide test data separately in a table
+And passing its path to the respective story file
+
+This framework also include the creation of test cycle, test folder, adding testcases, execution and update testcases status
+with zephyr end point
