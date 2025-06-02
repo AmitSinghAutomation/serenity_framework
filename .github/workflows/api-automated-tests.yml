@@ -1,0 +1,27 @@
+name: API Automated Tests
+
+on: 
+  workflow_dispatch:
+
+jobs:
+   api-automated-tests:
+   runs-on: windows-2022
+   steps:
+     -name: Checkout
+      uses: actions/checkout@v4.1.7
+
+     -name: Setup Java
+      uses: actions/setup-java@v4.0.0
+      with: 
+         distribution: 'zulu'
+         java-version: '8.0.392'
+
+     -name: Check JAVA_HOME
+      run: |
+        echo "JAVA_HOME is set to: $JAVA_HOME"
+        java -version
+
+     -name: Debug Java Path
+      run: |
+        which java
+        ls -l $JAVA_HOME
