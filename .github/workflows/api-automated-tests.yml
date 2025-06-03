@@ -34,6 +34,10 @@ jobs:
          echo "$mavenBin" >> $env:GITHUB_PATH
          mvn --version
 
+      - name: Debug Repository Path
+        shell: pwsh
+        run: Get-ChildItem -Path "$HOME/.m2/"
+
       - name: Cache Maven
         uses: actions/cache@4.2.0
         with:
