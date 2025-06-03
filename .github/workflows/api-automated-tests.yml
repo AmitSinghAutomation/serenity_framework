@@ -29,7 +29,7 @@ jobs:
          $mavenDir = "$env:USERPROFILE\maven"
          Invoke-WebRequest -Uri $mavenUrl -OutFile "maven.zip"
          Expand-Archive -Path "maven.zip" -DestinationPath $mavenDir -Force
-         $mavenBin = $mavenDir\apache-maven-$mavenVersion\bin
+         $mavenBin = "$mavenDir\apache-maven-$mavenVersion\bin"
          echo "MAVEN_HOME = $mavenBin" >> $env:GITHUB_ENV
          echo "$mavenBin" >> $env:GITHUB_PATH
          mvn --version
