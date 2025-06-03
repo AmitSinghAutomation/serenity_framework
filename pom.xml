@@ -21,8 +21,8 @@
     <repositories>
         <repository>
             <id>central</id>
-            <name>maven2</name>
-            <url>https://repo1.maven.org/maven2/</url>
+            <name>bintray</name>
+            <url>https://jcenter.bintray.com</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -32,8 +32,8 @@
     <pluginRepositories>
         <pluginRepository>
             <id>central</id>
-            <name>maven2-plugins</name>
-            <url>https://repo1.maven.org/maven2/</url>
+            <name>bintray-plugins</name>
+            <url>https://jcenter.bintray.com</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
