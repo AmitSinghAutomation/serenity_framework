@@ -34,14 +34,17 @@ jobs:
          echo "$mavenBin" >> $env:GITHUB_PATH
          mvn --version
 
+      - name: Ensure Maven Repository Exists
+        run: mkdir -p ~/.m2/repository
+      
       - name: Debug Repository Path
         shell: pwsh
-        run: Get-ChildItem -Path "$HOME/.m2/"
+        run: Get-ChildItem -Path "~/.m2/"
 
       - name: Cache Maven
         uses: actions/cache@4.2.0
         with:
-          path: $HOME/.m2/repository
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml')}}
           restore-keys: ${{ runner.os }}-maven- 
          
