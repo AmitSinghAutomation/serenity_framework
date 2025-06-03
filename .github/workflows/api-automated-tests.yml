@@ -51,7 +51,7 @@ jobs:
       - name: Remove Proxy
         shell: powershell
         run: |
-          if(Test-Path setting.xml){
+          if(Test-Path settings.xml){
             try{
             $xml = [xml](Get-Content -Raw settings.xml)
             if($xml.settings.proxies){
