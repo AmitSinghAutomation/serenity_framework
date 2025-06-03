@@ -53,7 +53,7 @@ Meta:
 @Tests
 TC010-WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID with header without token
 TC011-WebAPI-Request Response Service-"Get User Detail"-NOK-Validate the user detail desired response providing invalid user ID with header without token
-@API1
+@API1 @Action
 Given User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>
 Given User has a request header for Content-Type as application/json
 When User makes GET request with header and empty token
