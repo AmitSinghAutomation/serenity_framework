@@ -47,4 +47,60 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml')}}
           restore-keys: ${{ runner.os }}-maven- 
-         
+
+      - name: Remove Proxy
+        shell: powershell
+        run: |
+          if(Test-Path setting.xml){
+            try{
+            $xml = [xml](Get-Content -Raw settings.xml)
+            if($xml.settings.proxies){
+             $xml.settings.RemoveChild($xml.settings.proxies) | Out-Null
+             $xml.Save((Resolve-Path settings.xml))
+            }
+            }catch{
+            Write-Error "Failed to parse or modify settings.xml: $_"
+            exit 1
+            }
+          }else{
+          Write-Error "setting.xml not found"
+          exit 1
+          }
+          
+      - name: Run API Automated Tests
+        shell: cmd
+        run: |
+          echo mvn clean install -DexeEnvironment=R2 -s settings.xml -Dmetafilter="+API +Regression" -DstoryName="**/stories/R2.1/WebAPI/**/*.story"
+          mvn -X clean verify -DexeEnvironment=R2 -s settings.xml -Dmetafilter="+API +Regression" -DstoryName="**/stories/R2.1/WebAPI/**/*.story" > api-test-output.txt
+          if not exist api-test-output.txt {
+          echo Output file not created
+          exit 1
+          }
+          findstr "BUILD FAILURE" api-test-output.txt
+          if %ERRORLEVEL% equ 0 {
+          echo Build Failed
+          exist 1
+          }
+          
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/windows/bash@v2.15.0
+        if: always()
+        with:
+           files: target/failsafe-report/TEST*.xml
+        continue-on-error: true
+
+      - name: Archive Serenity Reports
+        uses: actions/upload-artifact@v4.3.6
+        if: always()
+        with:
+           name: api-tests-result
+           path: target/site/serenity
+        continue-on-error: true
+
+      - name: Upload Test Output
+        uses: actions/upload-artifact@v4.3.6
+        if: always()
+        with:
+           name: api-test-output
+           path: api-test-output.txt
+        continue-on-error: true
