@@ -20,3 +20,24 @@ jobs:
         run: |
           echo "JAVA_HOME is set to: $JAVA_HOME"
           java -version
+
+      - name: Setup Maven
+        shell: powershell
+        run: |
+         $mavenVersion = "3.9.6"
+         $mavenUrl = "https://downloads.apache.org/maven/maven-3/$mavenVersion/binaries/apache-maven-$mavenVersion-bin.zip"
+         $mavenDir = "$env:USERPROFILE\maven"
+         Invoke-WebRequest -Uri $mavenUrl -OutFile "maven.zip"
+         Expand-Archive -Path "maven.zip" -DestinationPath $mavenDir -Force
+         $mavenBin = $mavenDir\apache-maven-$mavenVersion\bin
+         echo "MAVEN_HOME = $mavenBin" >> $env:GITHUB_ENV
+         echo "$mavenBin" >> $env:GITHUB_PATH
+         mvn --version
+
+      - name: Cache Maven
+        uses: actions/cache@4.2.0
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml')}}
+          restore-keys: ${{ runner.os }}-maven- 
+         
