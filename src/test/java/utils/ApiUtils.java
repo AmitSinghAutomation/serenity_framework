@@ -467,4 +467,35 @@ public class ApiUtils {
             return null;
         }
     }
+
+    public Response postRequestWithURLEncodedKeys(String baseURL, String endPoint, Map<String, String> forms, Map<String, String> headers)
+    {
+      Response response = null;
+      RequestSpecification requestSpecification = SerenityRest.given()
+              .redirects().follow(false)
+              .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().encodeContentTypeAs("application/x-www-form-urlencoded", ContentType.URLENC)))
+              .contentType("application/x-www-form-urlencoded")
+              .relaxedHTTPSValidation();
+      try {
+          if(headers != null)
+          {
+            requestSpecification.headers(headers);
+          }
+          if(forms != null)
+          {
+            for(Map.Entry<String, String> entry : forms.entrySet())
+            {
+              String key = entry.getKey();
+              String value = entry.getValue();
+              Log.info("Key= "+key+ ", Value=" +value);
+              requestSpecification.formParam(key, value);
+            }
+          }
+          response = requestSpecification.baseUri(baseURL).post(endPoint);
+      }catch (Exception e)
+      {
+        Log.error("Error occured while making the POST request");
+      }
+      return response;
+    }
 }

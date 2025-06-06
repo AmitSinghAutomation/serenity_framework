@@ -26,3 +26,5 @@ And passing its path to the respective story file
 
 This framework also include the creation of test cycle, test folder, adding testcases, execution and update testcases status
 with zephyr end point
+
+This framework also include fetching the token from okta authentication is in progress currently
