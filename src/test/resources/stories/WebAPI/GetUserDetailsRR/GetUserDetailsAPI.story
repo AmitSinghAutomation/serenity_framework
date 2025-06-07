@@ -25,14 +25,15 @@ TC004-WebAPI-Request Response Service-"Get User Detail"-NOK-Validate the user de
 @API
 Given User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>
 Given User has a request header for Content-Type as application/json
+Given User has a request header for <HeaderKey> as <HeaderValue>
 When User makes GET request with header and empty token
 Then Response should have a response code as <ExpectedResponseCode>
 And Response should have a response body as <ExpectedResponseBody>
 
 Examples:
-|EndPoint   |ValueToBeAddedInEndPoint|IdToBeReplacedWithEndPoint|ExpectedResponseCode |ExpectedResponseBody        |ResponseBodyFolderName |DataNotToCompare |
-|userDetails|validUserID             |userID                    |200                  |GetUserDetails.json         |GetUserDetailsAPI      |url              |
-|userDetails|invalidUserID           |userID                    |404                  |GetInvalidUserDetails.json  |GetUserDetailsAPI      |url              |
+|EndPoint   |HeaderKey|HeaderValue|ValueToBeAddedInEndPoint|IdToBeReplacedWithEndPoint|ExpectedResponseCode |ExpectedResponseBody        |ResponseBodyFolderName |DataNotToCompare |
+|userDetails|x-api-key|tokenValue |validUserID             |userID                    |200                  |GetUserDetails.json         |GetUserDetailsAPI      |url              |
+|userDetails|x-api-key|tokenValue |invalidUserID           |userID                    |404                  |GetInvalidUserDetails.json  |GetUserDetailsAPI      |url              |
 
 Scenario: Validate the response of a particular user by providing its id without token and header using table data
 Meta:
@@ -41,6 +42,7 @@ TC008-WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user det
 TC009-WebAPI-Request Response Service-"Get User Detail"-NOK-Validate the user detail desired response providing invalid user ID without token and header
 @API1
 Given User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>
+Given User has a request header for <HeaderKey> as <HeaderValue>
 When User makes GET request with empty token and empty header
 Then Response should have a response code as <ExpectedResponseCode>
 And Response should have a response body as <ExpectedResponseBody>
@@ -56,6 +58,7 @@ TC011-WebAPI-Request Response Service-"Get User Detail"-NOK-Validate the user de
 @API1 @Action
 Given User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>
 Given User has a request header for Content-Type as application/json
+Given User has a request header for <HeaderKey> as <HeaderValue>
 When User makes GET request with header and empty token
 Then Response should have a response code as <ExpectedResponseCode>
 And Response should have a response body as <ExpectedResponseBody>

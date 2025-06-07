@@ -204,6 +204,7 @@ public class OktaServiceTokenManager
             this.authToken = "Bearer " + documentContext.read(JSONPATH_AccessTOKEN);
         }
         Log.info("Authentication Token: "+this.authToken);
+        return authToken;
     }
 
     public String getAuthenticationToken(String inputJson) throws Exception

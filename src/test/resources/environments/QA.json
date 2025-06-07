@@ -1,4 +1,5 @@
 {
+  "tokenReqRes":"reqres-free-v1",
   "hostReqRes":"https://reqres.in",
   "userDetails":"/api/users/{userID}",
   "deleteUser": "/api/users/{userID}",
