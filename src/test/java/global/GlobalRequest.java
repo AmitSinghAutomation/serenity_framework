@@ -1,5 +1,7 @@
 package global;
 
+import utils.JsonUtils;
+
 import java.util.HashMap;
 
 public class GlobalRequest {
@@ -8,6 +10,7 @@ public class GlobalRequest {
     private static HashMap<String, String> queryParams = new HashMap<String, String>();
     private static String organizationName, locationName, siteName, deviceName, deviceChannelName;
     private static String version = null;
+    private static JsonUtils jsonUtils = new JsonUtils();
 
     public static HashMap<String, String> getQueryParams() {
         return queryParams;
@@ -70,10 +73,12 @@ public class GlobalRequest {
     }
 
     public static void setHeaders(String headerName, String headerValue) {
-        GlobalRequest.headers.put(headerName,headerValue);
+
                 if(headerName.toUpperCase().equals("VERSION"))
                 {
                     version = headerValue;
                 }
+        String value = jsonUtils.readJsonFile(headerValue);
+        GlobalRequest.headers.put(headerName,value);
     }
 }
