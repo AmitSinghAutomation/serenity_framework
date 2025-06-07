@@ -112,8 +112,9 @@ jobs:
           path: target/site/serenity
         continue-on-error: true
 
-      - name: List Files after dowload
-        run: ls -l target/site/serenity/*.zip
+      - name: Debug Repository Path
+        shell: pwsh
+        run: Get-ChildItem -Path "target/site/serenity/*.zip"
 
       - name: Send Email via SMTP
         uses: dawidd6/action-send-mail@v3
