@@ -105,6 +105,13 @@ jobs:
            path: api-test-output.txt
         continue-on-error: true
 
+      - name: Download Test Report
+        uses: actions/download-artifact@v4
+        with:
+          name: api-tests-result
+          path: target/site/serenity
+        continue-on-error: true
+
       - name: Send Email via SMTP
         uses: dawidd6/action-send-mail@v3
         with:
