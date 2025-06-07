@@ -105,11 +105,16 @@ jobs:
            path: api-test-output.txt
         continue-on-error: true
 
-      - name: Send Email via Gmail
-        uses: Raghul-M/gmail-sender-action@v1
+      - name: Send Email via SMTP
+        uses: dawidd6/action-send-mail@v3
         with:
-          sender_email: ${{ secrets.EMAIL_SENDER }}
-          app_password: ${{ secrets.EMAIL_PASSWORD }}
-          receiver_emails: ${{ secrets.RECIPIENTS }}
-          template_path: "target/site/serenity"
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_SENDER }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Automated Test Report"
+          body: "Test report attached."
+          to: ${{ secrets.RECIPIENTS }}
+          from: ${{ secrets.EMAIL_SENDER }}
+          attachments: "target/site/serenity"
+
