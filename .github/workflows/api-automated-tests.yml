@@ -97,6 +97,9 @@ jobs:
            path: target/site/serenity
         continue-on-error: true
 
+      - name: List Files After Upload
+        run: ls -l target/site/serenity/*.zip
+              
       - name: Upload Test Output
         uses: actions/upload-artifact@v4.3.6
         if: always()
@@ -111,6 +114,9 @@ jobs:
           name: api-tests-result
           path: target/site/serenity
         continue-on-error: true
+
+      - name: List Files after dowload
+        run: ls -l target/site/serenity/*.zip
 
       - name: Send Email via SMTP
         uses: dawidd6/action-send-mail@v3
