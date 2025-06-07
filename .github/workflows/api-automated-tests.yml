@@ -123,5 +123,5 @@ jobs:
           body: "Test report attached."
           to: ${{ secrets.RECIPIENTS }}
           from: ${{ secrets.EMAIL_SENDER }}
-          attachments: "target/site/serenity/index.html"
+          attachments: "api-tests-result.zip"
 
