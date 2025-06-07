@@ -24,7 +24,7 @@ jobs:
       - name: Setup Maven
         shell: powershell
         run: |
-         $mavenVersion = "3.9.6"
+         $mavenVersion = "3.9.10"
          $mavenUrl = "https://downloads.apache.org/maven/maven-3/$mavenVersion/binaries/apache-maven-$mavenVersion-bin.zip"
          $mavenDir = "$env:USERPROFILE\maven"
          Invoke-WebRequest -Uri $mavenUrl -OutFile "maven.zip"
