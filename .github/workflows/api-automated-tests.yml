@@ -104,3 +104,12 @@ jobs:
            name: api-test-output
            path: api-test-output.txt
         continue-on-error: true
+
+      - name: Send Email via Gmail
+        uses: Raghul-M/gmail-sender-action@v1
+        with:
+          sender_email: ${{ secrets.EMAIL_SENDER }}
+          app_password: ${{ secrets.EMAIL_PASSWORD }}
+          receiver_emails: ${{ secrets.RECIPIENTS }}
+          template_path: "target/site/serenity"
+          subject: "Automated Test Report"
