@@ -111,6 +111,10 @@ jobs:
           name: api-tests-result
           path: target/site/serenity
         continue-on-error: true
+
+      - name: Debug Target Report Path
+        shell: pwsh
+        run: Get-ChildItem -Path "~/target/site/serenity/"
         
       - name: Send Email via SMTP
         uses: dawidd6/action-send-mail@v3
