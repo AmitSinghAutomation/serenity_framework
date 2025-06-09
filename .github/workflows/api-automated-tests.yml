@@ -109,12 +109,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: api-tests-result
-          path: target/site/serenity
+          path: ./downloaded_reports
         continue-on-error: true
 
-      - name: Debug Target Report Path
-        shell: pwsh
-        run: Get-ChildItem -Path "~/target/site/serenity/"
+      - name: Show downloaded file
+        run: ls -l ./downloaded_reports
         
       - name: Send Email via SMTP
         uses: dawidd6/action-send-mail@v3
@@ -127,5 +126,9 @@ jobs:
           body: "Test report attached."
           to: ${{ secrets.RECIPIENTS }}
           from: ${{ secrets.EMAIL_SENDER }}
-          attachments: "target/site/serenity/index.html"
+          attachments: "./downloaded_reports/api-tests-result"
+
+      - name: Delete Downloaded Test Report
+        run: rm -rf ./downloaded_reports
+
 
