@@ -125,3 +125,16 @@ jobs:
           $artifactsJson = Invoke-RestMethod -Uri "https://api.github.com/repos/AmitSinghAutomation/serenity_framework/actions/artifacts" -Headers $headers
           $artifactId = ($artifactsJson.artifacts | Where-Object { $_.name -eq "my-artifact" }).id
           Write-Output "ARTIFACT_ID=$artifactId"
+
+      - name: Send Email via SMTP
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_SENDER }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Automated Test Report"
+          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}artifacts/${{ env.ARTIFACT_ID }}"
+          to: ${{ secrets.RECIPIENTS }}
+          from: ${{ secrets.EMAIL_SENDER }}
+          attachments: "target/site/serenity/index.html"
