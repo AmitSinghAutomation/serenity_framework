@@ -117,7 +117,7 @@ jobs:
 
       - name: Zip the API Test Report
         run: |
-          zip -r api-test-result.zip api-test-result
+          Compress-Archive -Path ./downloaded_reports/api-test-result -DestinationPath ./downloaded_reports/api-test-result.zip
         
       - name: Send Email via SMTP
         uses: dawidd6/action-send-mail@v3
