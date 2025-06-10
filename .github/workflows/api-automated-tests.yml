@@ -130,10 +130,4 @@ jobs:
           body: "Test report attached."
           to: ${{ secrets.RECIPIENTS }}
           from: ${{ secrets.EMAIL_SENDER }}
-          attachments: api-test-result.zip
-
-      - name: Delete the Zip File
-        run: |
-           rm -rf api-test-result api-test-result.zip
-
-
+          attachments: ./downloaded_reports/api-test-result.zip
