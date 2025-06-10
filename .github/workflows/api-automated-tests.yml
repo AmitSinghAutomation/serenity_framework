@@ -126,16 +126,3 @@ jobs:
            ARTIFACT_ID=$(echo $ARTIFACTS_JSON | jq -r '.artifacts[] | select(.name=="my-artifact") | .id')
     
            echo "ARTIFACT_ID=$ARTIFACT_ID" >> $GITHUB_ENV
-    
-      - name: Send Email via SMTP
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_SENDER }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "Automated Test Report"
-          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}artifacts/${{ ARTIFACT_ID }}"
-          to: ${{ secrets.RECIPIENTS }}
-          from: ${{ secrets.EMAIL_SENDER }}
-          attachments: "target/site/serenity/index.html"
