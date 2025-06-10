@@ -127,7 +127,7 @@ jobs:
           username: ${{ secrets.EMAIL_SENDER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Automated Test Report"
-          body: "Test report attached."
+          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           to: ${{ secrets.RECIPIENTS }}
           from: ${{ secrets.EMAIL_SENDER }}
-          attachments: ./downloaded_reports/api-test-result.zip
+          attachments: "target/site/serenity/index.html"
