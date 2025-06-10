@@ -109,11 +109,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: api-tests-result
-          path: ./downloaded_reports
+          path: ./downloaded_reports/api-test-result
         continue-on-error: true
 
       - name: Show downloaded file
-        run: ls -l ./downloaded_reports
+        run: ls -l ./downloaded_reports/api-test-result
+
+      - name: Zip the API Test Report
+        run: |
+          zip -r api-test-result.zip api-test-result
         
       - name: Send Email via SMTP
         uses: dawidd6/action-send-mail@v3
@@ -126,9 +130,10 @@ jobs:
           body: "Test report attached."
           to: ${{ secrets.RECIPIENTS }}
           from: ${{ secrets.EMAIL_SENDER }}
-          attachments: "./downloaded_reports/api-tests-result"
+          attachments: api-test-result.zip
 
-      - name: Delete Downloaded Test Report
-        run: rm -rf ./downloaded_reports
+      - name: Delete the Zip File
+        run: |
+           rm -rf api-test-result api-test-result.zip
 
 
