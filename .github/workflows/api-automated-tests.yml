@@ -102,7 +102,7 @@ jobs:
           $headers = @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
           $artifactsJson = Invoke-RestMethod -Uri "https://api.github.com/repos/AmitSinghAutomation/serenity_framework/actions/artifacts" -Headers $headers
           Write-Output "ARTIFACT_JSON=$artifactsJson"
-          $artifactId = ($artifactsJson.artifacts | Where-Object { $_.name -eq "my-artifact" }).id
+          $artifactId = ($artifactsJson.artifacts | Where-Object { $_.name -eq "api-tests-result" }).id
           Write-Output "ARTIFACT_ID=$artifactId"
               
       - name: Upload Test Output
@@ -135,7 +135,7 @@ jobs:
           username: ${{ secrets.EMAIL_SENDER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Automated Test Report"
-          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.ARTIFACT_ID }}"
           to: ${{ secrets.RECIPIENTS }}
           from: ${{ secrets.EMAIL_SENDER }}
           attachments: "target/site/serenity/index.html"
