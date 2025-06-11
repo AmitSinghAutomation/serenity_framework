@@ -104,8 +104,7 @@ jobs:
           Write-Output "ARTIFACT_JSON=$artifactsJson"
           $artifactId = ($artifactsJson.artifacts | Where-Object { $_.name -eq "api-tests-result" }).id
           Write-Output "ARTIFACT_ID=$artifactId"
-          echo "artifact_id=$artifactId" >> $env:GITHUB_ENV
-          echo "::set-output name=artifact_id::$artifactId"
+          echo "ARTIFACT_ID=$artifactId" >> $GITHUB_ENV
               
       - name: Upload Test Output
         uses: actions/upload-artifact@v4.3.6
@@ -137,7 +136,7 @@ jobs:
           username: ${{ secrets.EMAIL_SENDER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Automated Test Report"
-          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/$artifact_id"
+          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/$ARTIFACT_ID"
           to: ${{ secrets.RECIPIENTS }}
           from: ${{ secrets.EMAIL_SENDER }}
           attachments: "target/site/serenity/index.html"
