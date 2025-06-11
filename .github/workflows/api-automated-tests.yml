@@ -96,6 +96,14 @@ jobs:
            name: api-tests-result
            path: target/site/serenity
         continue-on-error: true
+
+      - name: Fetch Artifact ID
+        run: |
+          $headers = @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
+          $artifactsJson = Invoke-RestMethod -Uri "https://api.github.com/repos/AmitSinghAutomation/serenity_framework/actions/artifacts" -Headers $headers
+          Write-Output "ARTIFACT_JSON=$artifactsJson"
+          $artifactId = ($artifactsJson.artifacts | Where-Object { $_.name -eq "my-artifact" }).id
+          Write-Output "ARTIFACT_ID=$artifactId"
               
       - name: Upload Test Output
         uses: actions/upload-artifact@v4.3.6
@@ -118,13 +126,6 @@ jobs:
       - name: Zip the API Test Report
         run: |
           Compress-Archive -Path ./downloaded_reports/api-test-result -DestinationPath ./downloaded_reports/api-test-result.zip
-          
-      - name: Fetch Artifact ID
-        run: |
-          $headers = @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
-          $artifactsJson = Invoke-RestMethod -Uri "https://api.github.com/repos/AmitSinghAutomation/serenity_framework/actions/artifacts" -Headers $headers
-          $artifactId = ($artifactsJson.artifacts | Where-Object { $_.name -eq "my-artifact" }).id
-          Write-Output "ARTIFACT_ID=$artifactId"
 
       - name: Send Email via SMTP
         uses: dawidd6/action-send-mail@v3
@@ -134,7 +135,7 @@ jobs:
           username: ${{ secrets.EMAIL_SENDER }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Automated Test Report"
-          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}artifacts/${{ env.ARTIFACT_ID }}"
+          body: "Download your artifact here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
           to: ${{ secrets.RECIPIENTS }}
           from: ${{ secrets.EMAIL_SENDER }}
           attachments: "target/site/serenity/index.html"
