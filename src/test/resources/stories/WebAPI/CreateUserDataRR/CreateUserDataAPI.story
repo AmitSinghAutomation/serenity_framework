@@ -2,6 +2,10 @@ Narrative:
 This is the demo API story file which will have few API endpoint automated in order to check its desired response
 
 Scenario: Validate the response of create user api endpoint
+!-- Author    : Amit Singh
+!-- Module    : Create User
+!-- Epic      : User Management
+!-- Defect ID : No Defect
 Meta:
 @Tests
 TC005-WebAPI-Request Response Service-"Create User"-OK-Validate the response of create user api endpoint

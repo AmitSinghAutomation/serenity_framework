@@ -2,6 +2,10 @@ Narrative:
 This is the demo API story file which will have few API endpoint automated in order to check its desired response
 
 Scenario: Validate the response of a particular user by providing its id without token and header
+!-- Author    : Amit Singh
+!-- Module    : Get User
+!-- Epic      : User Management
+!-- Defect ID : No Defect
 Meta:
 @Tests
 TC001-WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID without token and header
@@ -18,6 +22,10 @@ Examples:
 |userDetails|invalidUserID           |userID                    |404                  |GetInvalidUserDetails.json  |GetUserDetailsAPI      |url              |
 
 Scenario: Validate the response of a particular user by providing its id without token and with header
+!-- Author    : Amit Singh
+!-- Module    : Get User
+!-- Epic      : User Management
+!-- Defect ID : No Defect
 Meta:
 @Tests
 TC003-WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID with header without token
@@ -36,6 +44,10 @@ Examples:
 |userDetails|x-api-key|tokenValue |invalidUserID           |userID                    |404                  |GetInvalidUserDetails.json  |GetUserDetailsAPI      |url              |
 
 Scenario: Validate the response of a particular user by providing its id without token and header using table data
+!-- Author    : Amit Singh
+!-- Module    : Get User
+!-- Epic      : User Management
+!-- Defect ID : No Defect
 Meta:
 @Tests
 TC008-WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID without token and header
@@ -51,6 +63,10 @@ Examples:
 tables/GetUserDetailsAPI.table
 
 Scenario: Validate the response of a particular user by providing its id without token and with header using table data
+!-- Author    : Amit Singh
+!-- Module    : Get User
+!-- Epic      : User Management
+!-- Defect ID : No Defect
 Meta:
 @Tests
 TC010-WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID with header without token
