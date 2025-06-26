@@ -58,6 +58,7 @@ Given User has a request header for <HeaderKey> as <HeaderValue>
 When User makes GET request with empty token and empty header
 Then Response should have a response code as <ExpectedResponseCode>
 And Response should have a response body as <ExpectedResponseBody>
+And Required actual response get copied in environment for GetUserDetails
 
 Examples:
 tables/GetUserDetailsAPI.table
