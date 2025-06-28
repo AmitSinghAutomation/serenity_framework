@@ -1,0 +1,15 @@
+{
+  "tokenReqRes" : "reqres-free-v1",
+  "hostReqRes" : "https://reqres.in",
+  "userDetails" : "/api/users/{userID}",
+  "deleteUser" : "/api/users/{userID}",
+  "updateUser" : "/api/users/{userID}",
+  "createUser" : "/api/users",
+  "validUserID" : 1,
+  "invalidUserID" : 23,
+  "userIdToDelete" : "",
+  "GetUserDetails_data.id" : "1",
+  "GetUserDetails_data.email" : "george.bluth@reqres.in",
+  "GetUserDetails_data.first_name" : "George",
+  "GetUserDetails_data.last_name" : "Bluth"
+}

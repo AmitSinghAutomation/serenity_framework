@@ -1,8 +1,12 @@
 package serenity.whatSteps;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import global.GlobalRequest;
 import global.GlobalResponse;
 import logger.Log;
+import net.thucydides.core.util.SystemEnvironmentVariables;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Named;
 import org.jbehave.core.annotations.Then;
@@ -13,6 +17,7 @@ import utils.FileUtils;
 import utils.JsonUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +34,9 @@ public class CommonAPIWhatSteps {
     private JsonUtils jsonUtils = new JsonUtils();
     CommonAPIHowSteps commonAPIHowSteps = new CommonAPIHowSteps();
     private FileUtils fileUtils = new FileUtils();
+
+    private static String envFileName = System.getProperty("exeEnvironment")+".json";
+    private static String envFilePath = SystemEnvironmentVariables.createEnvironmentVariables().getProperty("environment.filepath")+envFileName;
 
     @Given("User has a valid ID from properties")
     public void getValidUserIDFromProperties()
@@ -144,6 +152,59 @@ public class CommonAPIWhatSteps {
         }
         commonAPIHowSteps.getValueFromResponseKey(Key, Value, this.actualResponseBody);
         Log.info("Value for: "+Key+" node is: "+System.getProperty(Value));
+    }
+
+    @Then("Required actual response get copied in environment for $entity")
+    public void updateMatchingValueInMap(String entity)
+    {
+        try{
+            ObjectMapper mapper = null;
+            JsonNode jsonNode = null;
+            File file = new File(envFilePath);
+            String expectedEnvJsonBody;
+
+            expectedEnvJsonBody = this.fileUtils.readFileFromLocation(envFilePath);
+
+            HashMap<String, String> expectedEnvJsonHashMap = commonAPIHowSteps.validateResponseBody(expectedEnvJsonBody.trim());
+
+            Map<String, String> expectedEntityMatchedJsonMap = new HashMap<String, String>();
+
+            for(Map.Entry<String,String> keyValueInEnvironmentJson : expectedEnvJsonHashMap.entrySet())
+            {
+              if(keyValueInEnvironmentJson.getKey().startsWith(entity))
+              {
+                  expectedEntityMatchedJsonMap.put(keyValueInEnvironmentJson.getKey(),keyValueInEnvironmentJson.getValue());
+              }else
+              {
+                  Log.error("Provided entity value not present under environment file" + entity);
+              }
+            }
+
+            this.actualResponseBody = GlobalResponse.getResponse().getBody().asString();
+            HashMap<String,String> actualJsonHashmap = commonAPIHowSteps.validateResponseBody(this.actualResponseBody.trim());
+
+            mapper = new ObjectMapper();
+            jsonNode = mapper.readTree(file);
+
+            for(Map.Entry<String, String> expectedKey : expectedEntityMatchedJsonMap.entrySet())
+            {
+                for(Map.Entry<String, String> actualKey : actualJsonHashmap.entrySet())
+                {
+                    String entityKeySet = (entity+"_"+actualKey.getKey());
+                    if(expectedKey.getKey().trim().equals(entityKeySet.trim()))
+                    {
+                        ((ObjectNode) jsonNode).put(expectedKey.getKey(),actualKey.getValue());
+                        Log.info(expectedKey.getValue() + " updated with "+actualKey.getValue());
+                        break;
+                    }
+                }
+            }
+                mapper.writerWithDefaultPrettyPrinter().writeValue(file,jsonNode);
+
+        }catch (IOException e){
+               e.printStackTrace();
+        }
+
     }
 
 }
