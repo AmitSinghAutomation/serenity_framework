@@ -8,7 +8,9 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -16,6 +18,10 @@ import java.util.Map;
 public class JsonUtils {
 
     private static HashMap<String, String> tempHashMap = new HashMap<String, String>();
+    private static String envTempFileName = "EnvDataTemp.json";
+    private static Path envTempPath = Paths.get(SystemEnvironmentVariables.createEnvironmentVariables().getProperty("environment.filepath") + envTempFileName);
+    private static String envFileName = System.getProperty("exeEnvironment")+".json";
+    private static Path envFilePath = Paths.get(SystemEnvironmentVariables.createEnvironmentVariables().getProperty("environment.filepath") + envFileName);
 
     public static void loadEnvironmentProperties(String envFileName)
     {
@@ -154,6 +160,26 @@ public class JsonUtils {
        {
            return true;
        }
+    }
+
+    public static void createEnvironmentJson()
+    {
+        if(!Files.exists(envFilePath))
+        {
+            try
+            {
+                Files.copy(envTempPath,envFilePath, StandardCopyOption.REPLACE_EXISTING);
+                Log.info("Environment json created successfully!");
+
+            }catch(IOException e)
+            {
+                Log.error("Error during creating the JSON "+e.getMessage());
+            }
+        }else
+        {
+            Log.info("Environment json already exists!");
+        }
+
     }
 
 }

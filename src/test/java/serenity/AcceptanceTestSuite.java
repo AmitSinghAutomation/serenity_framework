@@ -22,10 +22,15 @@ import java.util.Map;
 public class AcceptanceTestSuite extends SerenityStories {
 
     ZephyrCloudConnector zephyrCloudConnector;
+    EnvironmentVariables environmentVariables = SystemEnvironmentVariables.createEnvironmentVariables();
 
     @BeforeStories
     public void initialize()
     {
+        if(environmentVariables.getProperty("environmentData.createFile").toUpperCase().equals("YES"))
+        {
+           JsonUtils.createEnvironmentJson();
+        }
         JsonUtils.loadEnvironmentProperties(System.getProperty("exeEnvironment"));
     }
 
