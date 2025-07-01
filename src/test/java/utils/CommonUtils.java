@@ -1,8 +1,11 @@
 package utils;
 
+import com.microsoft.applicationinsights.TelemetryClient;
 import logger.Log;
 import net.thucydides.core.model.TestOutcome;
+import net.thucydides.core.util.SystemEnvironmentVariables;
 
+import java.time.Instant;
 import java.util.*;
 
 public class CommonUtils {
@@ -10,6 +13,11 @@ public class CommonUtils {
     static List<String> testCaseNameList = new ArrayList<String>();
     static List<String> issueKeyList = new ArrayList<String>();
     static HashMap<String, String> failingTests = new HashMap<String,String>();
+    static String appInsightKey = SystemEnvironmentVariables.createEnvironmentVariables().getProperty("appInsights.instrumentationKey");
+    private static String ciJob = System.getProperty("CI-Job");
+    static TelemetryClient telemetryClient = new TelemetryClient();
+    static HashMap<String, String> appInsightMap = new HashMap<String,String>();
+    static HashMap<String, Double> appInsightDuration = new HashMap<String,Double>();
 
     public static List<String> getTestCaseList(Map<String, String> metaDataMap) {
         Log.info("Meta Data ---->" + metaDataMap);
@@ -53,7 +61,7 @@ public class CommonUtils {
     public static void setFailedTestCasesAuthorDetails(TestOutcome latestTestOutCome)
     {
         String scenarioDetails = latestTestOutCome.getDataDrivenSampleScenario();
-        String author = CommonUtils.findContentBetween(scenarioDetails.toLowerCase(),"author","!--").replace(":","").trim();
+        String author = CommonUtils.findContentBetween(scenarioDetails.toLowerCase(),"author","\n").replace(":","").trim();
         String scenario = latestTestOutCome.getTitle();
         String story = latestTestOutCome.getUserStory().getPath();
         Log.info(author+" "+scenario+" "+story);
@@ -70,6 +78,40 @@ public class CommonUtils {
            String scenario = keyParts[1];
            Log.error("Failing Tests: \t" +story+"-> \t\t\t"+scenario+"-> \t\t\t Author: "+author);
         }
+    }
+
+    public static void generateAppInsightData(List<String> testCaseNameList,TestOutcome latestTestOutCome)
+    {
+       if(ciJob != null)
+       {
+           telemetryClient.getContext().setInstrumentationKey(appInsightKey);
+           for(int i = 0; i < testCaseNameList.size(); i++)
+           {
+               String testCasename = testCaseNameList.get(i);
+               String status = null;
+               appInsightMap.put("Test-Name",testCasename);
+               appInsightMap.put("Test-Story",latestTestOutCome.getUserStory().getDisplayName());
+               Instant timeStamp = Instant.now();
+               Log.info("CI Job Name: "+ciJob);
+               if(latestTestOutCome.isSuccess())
+               {
+                   status = "Passed";
+               }else
+               {
+                   status = "Failed";
+               }
+               appInsightMap.put("CI-Job",ciJob);
+               appInsightMap.put("Test-Status",status);
+               appInsightMap.put("Execution-Time",timeStamp.toString());
+               appInsightMap.put("Failure-Reason",latestTestOutCome.getTestFailureMessage());
+               appInsightDuration.put("Duration",latestTestOutCome.getDurationInSeconds());
+               telemetryClient.trackEvent("Test Automation Execution",appInsightMap,appInsightDuration);
+               telemetryClient.flush();
+           }
+       }else
+       {
+           Log.info("--------Application insight logs are not recording as CI-JOB is NULL--------");
+       }
     }
 
 }

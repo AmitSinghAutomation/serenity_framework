@@ -51,26 +51,28 @@ public class AcceptanceTestSuite extends SerenityStories {
 
     @AfterScenario(uponType = ScenarioType.EXAMPLE)
     public void executeTestsAndMarkStatus() throws URISyntaxException {
-        EnvironmentVariables envVars = SystemEnvironmentVariables.createEnvironmentVariables();
 
-        if("YES".equalsIgnoreCase(envVars.getProperty("zephyr.connectionFlag")))
-        {
-            Log.info("<--------Start of marking the testcases status in Zephyr-------->");
-            Map <String, String> metaDataMap = Serenity.getCurrentSession().getMetaData();
-            List <String> testCaseNameList = CommonUtils.getTestCaseList(metaDataMap);
-            List <String> testCaseIssueKeyList = CommonUtils.getIssueKeyList(testCaseNameList);
-            TestOutcome result = StepEventBus.getEventBus().getBaseStepListener().latestTestOutcome().orElse(null);
-            String executionFlag = envVars.getProperty("zephyr.executionFlag");
-            if(result != null)
-            {
-                zephyrCloudConnector = new ZephyrCloudConnector(testCaseIssueKeyList, result.isSuccess(), executionFlag);
+        try {
+            EnvironmentVariables envVars = SystemEnvironmentVariables.createEnvironmentVariables();
+            TestOutcome latestTestOutCome = StepEventBus.getEventBus().getBaseStepListener().latestTestOutcome().orElse(null);
+            if ("YES".equalsIgnoreCase(envVars.getProperty("zephyr.connectionFlag"))) {
+                Log.info("<--------Start of marking the testcases status in Zephyr-------->");
+                Map<String, String> metaDataMap = Serenity.getCurrentSession().getMetaData();
+                List<String> testCaseNameList = CommonUtils.getTestCaseList(metaDataMap);
+                List<String> testCaseIssueKeyList = CommonUtils.getIssueKeyList(testCaseNameList);
+                String executionFlag = envVars.getProperty("zephyr.executionFlag");
+                if (latestTestOutCome != null) {
+                    zephyrCloudConnector = new ZephyrCloudConnector(testCaseIssueKeyList, latestTestOutCome.isSuccess(), executionFlag);
+                    CommonUtils.generateAppInsightData(testCaseNameList, latestTestOutCome);
+                }
+                Log.info("<--------End of marking the testcases status in Zephyr-------->");
             }
-            Log.info("<--------End of marking the testcases status in Zephyr-------->");
-        }
-        TestOutcome latestTestOutCome = StepEventBus.getEventBus().getBaseStepListener().latestTestOutcome().orElse(null);
-        if(latestTestOutCome != null && !latestTestOutCome.isSuccess())
+            if (latestTestOutCome != null && !latestTestOutCome.isSuccess()) {
+                CommonUtils.setFailedTestCasesAuthorDetails(latestTestOutCome);
+            }
+        }catch (NullPointerException e)
         {
-            CommonUtils.setFailedTestCasesAuthorDetails(latestTestOutCome);
+          Log.info("A Null Pointer Exception Occurred: "+e.getMessage());
         }
     }
 
