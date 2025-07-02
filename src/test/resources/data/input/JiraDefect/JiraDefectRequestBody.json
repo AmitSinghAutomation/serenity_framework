@@ -1,0 +1,27 @@
+{
+  "fields":
+  {
+    "project":
+    {
+      "id": "11111"
+    },
+    "issueType":
+    {
+      "id": "1"
+    },
+    "summary": "%s",
+    "description":
+    {
+      "version": 1,
+      "type": "doc",
+      "content": [{
+        "type": "paragraph",
+        "content": [{
+          "type": "text",
+          "text": "%s"
+        }]
+      }]
+    },
+    "labels": ["Automated_Defect"]
+  }
+}

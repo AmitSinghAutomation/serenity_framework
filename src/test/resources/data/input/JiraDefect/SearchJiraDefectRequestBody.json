@@ -1,0 +1,3 @@
+{
+  "jql": "project = XYZ AND type = Bug AND summary ~ '%s' AND status NOT IN (Closed, Cancelled, Done)"
+}
