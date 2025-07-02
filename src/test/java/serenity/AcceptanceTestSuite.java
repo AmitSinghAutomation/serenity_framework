@@ -1,6 +1,7 @@
 package serenity;
 
 import logger.Log;
+import manageTestCases.JiraDefectCreator;
 import manageTestCases.ZephyrCloudConnector;
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.jbehave.SerenityStories;
@@ -18,10 +19,12 @@ import utils.JsonUtils;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class AcceptanceTestSuite extends SerenityStories {
 
     ZephyrCloudConnector zephyrCloudConnector;
+    JiraDefectCreator jiraDefectCreator;
     EnvironmentVariables environmentVariables = SystemEnvironmentVariables.createEnvironmentVariables();
 
     @BeforeStories
@@ -69,6 +72,16 @@ public class AcceptanceTestSuite extends SerenityStories {
             }
             if (latestTestOutCome != null && !latestTestOutCome.isSuccess()) {
                 CommonUtils.setFailedTestCasesAuthorDetails(latestTestOutCome);
+            }
+            if ("YES".equalsIgnoreCase(envVars.getProperty("jira.connectionFlag")))
+            {
+                Log.info("<--------Checking the failed testcases for creating the defect in JIRA-------->");
+                Optional.ofNullable(latestTestOutCome).ifPresent(testOutcome -> {
+                    String defectSummary = "AutoBug: " + testOutcome.getTitle();
+                    String defectCreationFlag = envVars.getProperty("jira.defectCreationFlag");
+                    jiraDefectCreator = new JiraDefectCreator(defectSummary,testOutcome.getTestFailureMessage(),testOutcome.isSuccess(),defectCreationFlag);
+                });
+                Log.info("<--------Defects created for the failed testcases in JIRA-------->");
             }
         }catch (NullPointerException e)
         {
