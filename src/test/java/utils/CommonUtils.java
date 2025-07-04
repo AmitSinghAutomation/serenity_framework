@@ -84,7 +84,8 @@ public class CommonUtils {
     {
        if(ciJob != null)
        {
-           telemetryClient.getContext().setInstrumentationKey(appInsightKey);
+           //telemetryClient.getContext().setInstrumentationKey(appInsightKey);
+           appInsightMap.put("Scenario-Name",latestTestOutCome.getName());
            for(int i = 0; i < testCaseNameList.size(); i++)
            {
                String testCasename = testCaseNameList.get(i);
@@ -105,8 +106,16 @@ public class CommonUtils {
                appInsightMap.put("Execution-Time",timeStamp.toString());
                appInsightMap.put("Failure-Reason",latestTestOutCome.getTestFailureMessage());
                appInsightDuration.put("Duration",latestTestOutCome.getDurationInSeconds());
-               telemetryClient.trackEvent("Test Automation Execution",appInsightMap,appInsightDuration);
-               telemetryClient.flush();
+               Log.info("CI-Job----------- "+ciJob);
+               Log.info("Scenario-Name----------- "+latestTestOutCome.getName());
+               Log.info("Test-Name----------- "+testCasename);
+               Log.info("Test-Story----------- "+latestTestOutCome.getUserStory().getDisplayName());
+               Log.info("Test-Status----------- "+status);
+               Log.info("Execution-Time----------- "+timeStamp.toString());
+               Log.info("Failure-Reason----------- "+latestTestOutCome.getTestFailureMessage());
+               Log.info("Duration----------- "+latestTestOutCome.getDurationInSeconds());
+               //telemetryClient.trackEvent("Test Automation Execution",appInsightMap,appInsightDuration);
+               //telemetryClient.flush();
            }
        }else
        {
