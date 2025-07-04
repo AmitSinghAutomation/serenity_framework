@@ -61,6 +61,7 @@ public class AcceptanceTestSuite extends SerenityStories {
             if ("YES".equalsIgnoreCase(envVars.getProperty("zephyr.connectionFlag"))) {
                 Log.info("<--------Start of marking the testcases status in Zephyr-------->");
                 Map<String, String> metaDataMap = Serenity.getCurrentSession().getMetaData();
+                Log.info("Meta Data ---->" + metaDataMap);
                 List<String> testCaseNameList = CommonUtils.getTestCaseList(metaDataMap);
                 List<String> testCaseIssueKeyList = CommonUtils.getIssueKeyList(testCaseNameList);
                 String executionFlag = envVars.getProperty("zephyr.executionFlag");

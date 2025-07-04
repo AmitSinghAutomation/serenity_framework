@@ -28,7 +28,7 @@ Scenario: Validate the response of update user details endpoint using PATCH requ
 !-- Defect ID : No Defect
 Meta:
 @Tests
-TC007-WebAPI-Request Response Service-"Update User"-OK-Validate the response of update user api endpoint using PATCH request
+TC007:WebAPI-Request Response Service-"Update User"-OK-Validate the response of update user api endpoint using PATCH request
 @API
 Given User prepares endpoint as <EndPoint> and request body using <RequestBody>
 And User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>

@@ -20,12 +20,13 @@ public class CommonUtils {
     static HashMap<String, Double> appInsightDuration = new HashMap<String,Double>();
 
     public static List<String> getTestCaseList(Map<String, String> metaDataMap) {
-        Log.info("Meta Data ---->" + metaDataMap);
+
         for (Map.Entry<String, String> entry : metaDataMap.entrySet()) {
             if (entry.getKey().equalsIgnoreCase("Tests")) {
                 testCaseNameList = Arrays.asList(entry.getValue().toString().split("\n"));
             }
         }
+        Log.info("Test Case Name List ---->" + testCaseNameList);
         return testCaseNameList;
     }
 
@@ -36,6 +37,7 @@ public class CommonUtils {
             issueKeyList.add(issueKey[0]);
         }
         Log.info("<-------Exit Get Issue Key List Method ------->");
+        Log.info("Test Case Issue Key List ---->" + issueKeyList);
         return issueKeyList;
     }
 

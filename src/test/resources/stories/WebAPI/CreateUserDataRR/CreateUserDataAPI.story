@@ -8,7 +8,7 @@ Scenario: Validate the response of create user api endpoint
 !-- Defect ID : No Defect
 Meta:
 @Tests
-TC005-WebAPI-Request Response Service-"Create User"-OK-Validate the response of create user api endpoint
+TC005:WebAPI-Request Response Service-"Create User"-OK-Validate the response of create user api endpoint
 @API
 Given User prepares endpoint as <EndPoint> and request body using <RequestBody>
 And User has a request header for Content-Type as application/json
