@@ -6,6 +6,9 @@ import net.thucydides.core.model.TestOutcome;
 import net.thucydides.core.util.SystemEnvironmentVariables;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class CommonUtils {
@@ -20,22 +23,24 @@ public class CommonUtils {
     static HashMap<String, Double> appInsightDuration = new HashMap<String,Double>();
 
     public static List<String> getTestCaseList(Map<String, String> metaDataMap) {
-        Log.info("Meta Data ---->" + metaDataMap);
+
         for (Map.Entry<String, String> entry : metaDataMap.entrySet()) {
             if (entry.getKey().equalsIgnoreCase("Tests")) {
-                testCaseNameList = Arrays.asList(entry.getValue().toString().split("\n"));
+                testCaseNameList = Arrays.asList(entry.getValue().split("\n"));
             }
         }
+        Log.info("Test Case Name List ---->" + testCaseNameList);
         return testCaseNameList;
     }
 
     public static List<String> getIssueKeyList(List<String> testCaseNameList) {
         Log.info("<-------Entry Get Issue Key List Method ----->");
         for (int i = 0; i < testCaseNameList.size(); i++) {
-            String[] issueKey = testCaseNameList.get(i).toString().split(":");
+            String[] issueKey = testCaseNameList.get(i).split(":");
             issueKeyList.add(issueKey[0]);
         }
         Log.info("<-------Exit Get Issue Key List Method ------->");
+        Log.info("Test Case Issue Key List ---->" + issueKeyList);
         return issueKeyList;
     }
 
@@ -93,6 +98,15 @@ public class CommonUtils {
                appInsightMap.put("Test-Name",testCasename);
                appInsightMap.put("Test-Story",latestTestOutCome.getUserStory().getDisplayName());
                Instant timeStamp = Instant.now();
+               // Get the system's default time zone
+               ZoneId systemZone = ZoneId.systemDefault();
+               // Convert Instant to ZonedDateTime using system's time zone
+               ZonedDateTime localDateTime = timeStamp.atZone(systemZone);
+               // Define a formatter for readable date and time
+               DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+               // Format the ZonedDateTime
+               String formattedDateTime = localDateTime.format(formatter);
                Log.info("CI Job Name: "+ciJob);
                if(latestTestOutCome.isSuccess())
                {
@@ -103,7 +117,7 @@ public class CommonUtils {
                }
                appInsightMap.put("CI-Job",ciJob);
                appInsightMap.put("Test-Status",status);
-               appInsightMap.put("Execution-Time",timeStamp.toString());
+               appInsightMap.put("Execution-Time",formattedDateTime);
                appInsightMap.put("Failure-Reason",latestTestOutCome.getTestFailureMessage());
                appInsightDuration.put("Duration",latestTestOutCome.getDurationInSeconds());
                Log.info("CI-Job----------- "+ciJob);
@@ -111,7 +125,7 @@ public class CommonUtils {
                Log.info("Test-Name----------- "+testCasename);
                Log.info("Test-Story----------- "+latestTestOutCome.getUserStory().getDisplayName());
                Log.info("Test-Status----------- "+status);
-               Log.info("Execution-Time----------- "+timeStamp.toString());
+               Log.info("Execution-Time----------- "+formattedDateTime);
                Log.info("Failure-Reason----------- "+latestTestOutCome.getTestFailureMessage());
                Log.info("Duration----------- "+latestTestOutCome.getDurationInSeconds());
                //telemetryClient.trackEvent("Test Automation Execution",appInsightMap,appInsightDuration);

@@ -181,7 +181,7 @@ public class CommonAPIWhatSteps {
                   expectedEntityMatchedJsonMap.put(keyValueInEnvironmentJson.getKey(),keyValueInEnvironmentJson.getValue());
               }else
               {
-                  Log.error("Provided entity value not present under environment file" + entity);
+                  Log.error("Provided entity value not present under environment file: " + entity);
               }
             }
 
