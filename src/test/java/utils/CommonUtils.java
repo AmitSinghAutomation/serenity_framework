@@ -6,6 +6,9 @@ import net.thucydides.core.model.TestOutcome;
 import net.thucydides.core.util.SystemEnvironmentVariables;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class CommonUtils {
@@ -95,6 +98,15 @@ public class CommonUtils {
                appInsightMap.put("Test-Name",testCasename);
                appInsightMap.put("Test-Story",latestTestOutCome.getUserStory().getDisplayName());
                Instant timeStamp = Instant.now();
+               // Get the system's default time zone
+               ZoneId systemZone = ZoneId.systemDefault();
+               // Convert Instant to ZonedDateTime using system's time zone
+               ZonedDateTime localDateTime = timeStamp.atZone(systemZone);
+               // Define a formatter for readable date and time
+               DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
+               // Format the ZonedDateTime
+               String formattedDateTime = localDateTime.format(formatter);
                Log.info("CI Job Name: "+ciJob);
                if(latestTestOutCome.isSuccess())
                {
@@ -105,7 +117,7 @@ public class CommonUtils {
                }
                appInsightMap.put("CI-Job",ciJob);
                appInsightMap.put("Test-Status",status);
-               appInsightMap.put("Execution-Time",timeStamp.toString());
+               appInsightMap.put("Execution-Time",formattedDateTime);
                appInsightMap.put("Failure-Reason",latestTestOutCome.getTestFailureMessage());
                appInsightDuration.put("Duration",latestTestOutCome.getDurationInSeconds());
                Log.info("CI-Job----------- "+ciJob);
@@ -113,7 +125,7 @@ public class CommonUtils {
                Log.info("Test-Name----------- "+testCasename);
                Log.info("Test-Story----------- "+latestTestOutCome.getUserStory().getDisplayName());
                Log.info("Test-Status----------- "+status);
-               Log.info("Execution-Time----------- "+timeStamp);
+               Log.info("Execution-Time----------- "+formattedDateTime);
                Log.info("Failure-Reason----------- "+latestTestOutCome.getTestFailureMessage());
                Log.info("Duration----------- "+latestTestOutCome.getDurationInSeconds());
                //telemetryClient.trackEvent("Test Automation Execution",appInsightMap,appInsightDuration);
