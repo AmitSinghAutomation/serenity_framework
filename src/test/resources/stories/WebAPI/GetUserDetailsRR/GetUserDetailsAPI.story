@@ -7,8 +7,7 @@ Scenario: Validate the response of a particular user by providing its id without
 !-- Epic      : User Management
 !-- Defect ID : No Defect
 Meta:
-@Tests
-TC001:WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID without token and header
+@Tests TC001:WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID without token and header
 TC002:WebAPI-Request Response Service-"Get User Detail"-NOK-Validate the user detail desired response providing invalid user ID without token and header
 @API
 Given User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>
@@ -27,8 +26,7 @@ Scenario: Validate the response of a particular user by providing its id without
 !-- Epic      : User Management
 !-- Defect ID : No Defect
 Meta:
-@Tests
-TC003:WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID with header without token
+@Tests TC003:WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID with header without token
 TC004:WebAPI-Request Response Service-"Get User Detail"-NOK-Validate the user detail desired response providing invalid user ID with header without token
 @API
 Given User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>
@@ -49,8 +47,7 @@ Scenario: Validate the response of a particular user by providing its id without
 !-- Epic      : User Management
 !-- Defect ID : No Defect
 Meta:
-@Tests
-TC008:WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID without token and header
+@Tests TC008:WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID without token and header
 TC009:WebAPI-Request Response Service-"Get User Detail"-NOK-Validate the user detail desired response providing invalid user ID without token and header
 @API1
 Given User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>
@@ -69,8 +66,7 @@ Scenario: Validate the response of a particular user by providing its id without
 !-- Epic      : User Management
 !-- Defect ID : No Defect
 Meta:
-@Tests
-TC010:WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID with header without token
+@Tests TC010:WebAPI-Request Response Service-"Get User Detail"-OK-Validate the user detail desired response providing user ID with header without token
 TC011:WebAPI-Request Response Service-"Get User Detail"-NOK-Validate the user detail desired response providing invalid user ID with header without token
 @API1 @Action
 Given User prepares endpoint <EndPoint> and writes value as <ValueToBeAddedInEndPoint>

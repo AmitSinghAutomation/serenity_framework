@@ -23,7 +23,7 @@ public class CommonUtils {
 
         for (Map.Entry<String, String> entry : metaDataMap.entrySet()) {
             if (entry.getKey().equalsIgnoreCase("Tests")) {
-                testCaseNameList = Arrays.asList(entry.getValue().toString().split("\n"));
+                testCaseNameList = Arrays.asList(entry.getValue().split("\n"));
             }
         }
         Log.info("Test Case Name List ---->" + testCaseNameList);
@@ -33,7 +33,7 @@ public class CommonUtils {
     public static List<String> getIssueKeyList(List<String> testCaseNameList) {
         Log.info("<-------Entry Get Issue Key List Method ----->");
         for (int i = 0; i < testCaseNameList.size(); i++) {
-            String[] issueKey = testCaseNameList.get(i).toString().split(":");
+            String[] issueKey = testCaseNameList.get(i).split(":");
             issueKeyList.add(issueKey[0]);
         }
         Log.info("<-------Exit Get Issue Key List Method ------->");
@@ -113,7 +113,7 @@ public class CommonUtils {
                Log.info("Test-Name----------- "+testCasename);
                Log.info("Test-Story----------- "+latestTestOutCome.getUserStory().getDisplayName());
                Log.info("Test-Status----------- "+status);
-               Log.info("Execution-Time----------- "+timeStamp.toString());
+               Log.info("Execution-Time----------- "+timeStamp);
                Log.info("Failure-Reason----------- "+latestTestOutCome.getTestFailureMessage());
                Log.info("Duration----------- "+latestTestOutCome.getDurationInSeconds());
                //telemetryClient.trackEvent("Test Automation Execution",appInsightMap,appInsightDuration);
