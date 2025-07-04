@@ -6,15 +6,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import global.GlobalRequest;
 import global.GlobalResponse;
 import logger.Log;
+import net.thucydides.core.annotations.Steps;
 import net.thucydides.core.util.SystemEnvironmentVariables;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Named;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
+import org.jbehave.core.model.ExamplesTable;
 import org.junit.Assert;
 import serenity.howSteps.CommonAPIHowSteps;
 import utils.FileUtils;
 import utils.JsonUtils;
+import utils.OktaServiceTokenManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,11 +33,13 @@ public class CommonAPIWhatSteps {
     private String actualResponseBody;
     private String dataNotToCompare;
     private String requestPayloadWithAPI;
+    private String tokenValue = null;
 
     private JsonUtils jsonUtils = new JsonUtils();
     CommonAPIHowSteps commonAPIHowSteps = new CommonAPIHowSteps();
     private FileUtils fileUtils = new FileUtils();
-
+    @Steps
+    OktaServiceTokenManager oktaServiceTokenManager;
     private static String envFileName = System.getProperty("exeEnvironment")+".json";
     private static String envFilePath = SystemEnvironmentVariables.createEnvironmentVariables().getProperty("environment.filepath")+envFileName;
 
@@ -205,6 +210,24 @@ public class CommonAPIWhatSteps {
                e.printStackTrace();
         }
 
+    }
+
+    @Given("User prepares okta request body")
+    public void preparesOktaRequestBody(ExamplesTable fieldsTable)
+    {
+      for(Map<String,String> row: fieldsTable.getRows())
+      {
+          String bodyRequest = row.get("RequestBody");
+          String requestBodyFolderName = row.get("RequestBodyFolderName");
+          this.requestPayloadWithAPI = this.fileUtils.readFileFromGivenLocation(this.jsonUtils.getValueFromSerenityproperties("oktaAuthRequest.filePath") + requestBodyFolderName + File.separator + bodyRequest);
+      }
+    }
+
+    @Given("User has a valid okta token for $username and $password")
+    public void prepareValidOktaTokenForUser(String username, String password) throws Exception {
+        this.requestPayloadWithAPI = String.format(this.requestPayloadWithAPI, jsonUtils.readJsonFile(username), jsonUtils.readJsonFile(password));
+        Log.info(requestPayloadWithAPI);
+        this.tokenValue = oktaServiceTokenManager.getAuthenticationToken(this.requestPayloadWithAPI);
     }
 
 }

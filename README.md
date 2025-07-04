@@ -27,4 +27,12 @@ And passing its path to the respective story file
 This framework also include the creation of test cycle, test folder, adding testcases, execution and update testcases status
 with zephyr end point
 
-This framework also include fetching the token from okta authentication is in progress currently
+This framework also include fetching the token from okta authentication
+
+Framework also include the creation of Jira Defect. It also parses the name of CI Job from GitHub Work Flow.
+Also handle the resolution for the browser.
+
+Command for mentioning the resolution at the run time is given below
+clean install -DexeEnvironment=QA -s settings.xml -DstoryName=UpdateUserDetailsPutAPI.story -Dmetafilter=+UI -Dwebdriver.driver="chrome" -Dresolution="1024,768"
+
+This framework also handle runtime required response data saving for further use

@@ -70,8 +70,8 @@ jobs:
       - name: Run API Automated Tests
         shell: cmd
         run: |
-          echo mvn clean install -DexeEnvironment=QA -s settings.xml -Dmetafilter="+API1 +Action" -DstoryName="**/stories/WebAPI/**/*.story"
-          mvn -X clean verify -DexeEnvironment=QA -s settings.xml -Dmetafilter="+API1 +Action" -DstoryName="**/stories/WebAPI/**/*.story" > api-test-output.txt
+          echo mvn clean install -DexeEnvironment=QA -s settings.xml -Dmetafilter="+API1 +Action" -DstoryName="**/stories/WebAPI/**/*.story" -DCI-Job="%GITHUB_WORKFLOW%"
+          mvn -X clean verify -DexeEnvironment=QA -s settings.xml -Dmetafilter="+API1 +Action" -DstoryName="**/stories/WebAPI/**/*.story" -DCI-Job="%GITHUB_WORKFLOW%" > api-test-output.txt
           if not exist api-test-output.txt {
           echo Output file not created
           exit 1
