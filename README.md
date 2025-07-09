@@ -36,3 +36,6 @@ Command for mentioning the resolution at the run time is given below
 clean install -DexeEnvironment=QA -s settings.xml -DstoryName=UpdateUserDetailsPutAPI.story -Dmetafilter=+UI -Dwebdriver.driver="chrome" -Dresolution="1024,768"
 
 This framework also handle runtime required response data saving for further use
+
+Implementation of WebUI POC using chrome browser using different resolution
+clean install -DexeEnvironment=QA-Smoke -s settings.xml -DstoryName=WebPoc.story -Dwebdriver.driver=chrome -Dresolution="1024,768"

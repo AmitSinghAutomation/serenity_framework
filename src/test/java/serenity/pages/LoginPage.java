@@ -18,7 +18,9 @@ public class LoginPage extends PageObject {
             {
                 String [] parts = browserResolution.split(",");
                 width = Integer.parseInt(parts[0].trim());
+                Log.info("Width given from maven command line "+width);
                 height = Integer.parseInt(parts[1].trim());
+                Log.info("Height given from maven command line "+height);
                 super.getDriver().manage().window().setSize(new Dimension(width,height));
             }else
             {
