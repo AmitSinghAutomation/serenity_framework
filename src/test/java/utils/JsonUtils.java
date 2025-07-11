@@ -1,8 +1,10 @@
 package utils;
 
 import logger.Log;
+import net.thucydides.core.util.EnvironmentVariables;
 import net.thucydides.core.util.SystemEnvironmentVariables;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -17,17 +19,19 @@ import java.util.Map;
 
 public class JsonUtils {
 
+    private static EnvironmentVariables environmentVariables = SystemEnvironmentVariables.createEnvironmentVariables();
     private static HashMap<String, String> tempHashMap = new HashMap<String, String>();
     private static String envTempFileName = "EnvDataTemp.json";
-    private static Path envTempPath = Paths.get(SystemEnvironmentVariables.createEnvironmentVariables().getProperty("environment.filepath") + envTempFileName);
+    private static Path envTempPath = Paths.get(environmentVariables.getProperty("environment.filepath") + envTempFileName);
     private static String envFileName = System.getProperty("exeEnvironment")+".json";
-    private static Path envFilePath = Paths.get(SystemEnvironmentVariables.createEnvironmentVariables().getProperty("environment.filepath") + envFileName);
+    private static Path envFilePath = Paths.get(environmentVariables.getProperty("environment.filepath") + envFileName);
+    public static String mobileExecutionType = environmentVariables.getProperty("ExecutionType");
 
     public static void loadEnvironmentProperties(String envFileName)
     {
         try
         {
-           String envFile = SystemEnvironmentVariables.createEnvironmentVariables().getProperty("environment.filepath");
+           String envFile = environmentVariables.getProperty("environment.filepath");
            String fileString = new String(Files.readAllBytes(Paths.get(envFile+envFileName+".json")), StandardCharsets.UTF_8);
             JSONObject parentNode = new JSONObject(fileString);
             Iterator<String> keys = parentNode.keys();
@@ -55,7 +59,7 @@ public class JsonUtils {
 
     public String getValueFromSerenityproperties(String propertyName)
     {
-        return SystemEnvironmentVariables.createEnvironmentVariables().getProperty(propertyName);
+        return environmentVariables.getProperty(propertyName);
     }
 
     public HashMap<String, String> listJson(JSONObject json)
@@ -180,6 +184,64 @@ public class JsonUtils {
             Log.info("Environment json already exists!");
         }
 
+    }
+
+    public static String getLocatorType(String pageName, String objectName)
+    {
+        return getLocatorNodeFromLocatorJson(pageName,objectName).get("locatorType").toString();
+    }
+
+    public static String getLocatorValue(String pageName, String objectName) {
+        return getLocatorNodeFromLocatorJson(pageName,objectName).get("locatorValue").toString();
+    }
+
+    public static JSONObject getLocatorNodeFromLocatorJson(String pageName, String objectName)
+    {
+       JSONObject pageNode = getPageNodeFromLocatorJson(pageName);
+       JSONObject objectNode = (JSONObject) pageNode.get(objectName);
+       return objectNode;
+    }
+
+    private static JSONObject getPageNodeFromLocatorJson(String pageName)
+    {
+        try
+        {
+            Map<String, String> locatorKeys = new HashMap<>();
+            locatorKeys.put("ANDROID","locators.filePath.android");
+            locatorKeys.put("IOS","locators.filePath.ios");
+            locatorKeys.put("WEB","locators.filePath.web");
+
+            String executionType = mobileExecutionType.toUpperCase();
+            String locatorKey = locatorKeys.getOrDefault(executionType,"locators.filePath.web");
+            String locatorFile = environmentVariables.getProperty(locatorKey);
+
+            JSONObject pageNode = getPageNodeFromFile(locatorFile,pageName);
+            if(pageNode != null)
+            {
+                return pageNode;
+            }
+
+            if(!"WEB".equalsIgnoreCase(mobileExecutionType))
+            {
+              String webLocatorFile = environmentVariables.getProperty("locators.filePath.web");
+              return getPageNodeFromFile(webLocatorFile,pageName);
+            }
+            Log.error("Page key not found in any locator file: "+pageName);
+        }catch (IOException ioException)
+        {
+          Log.error("Locator file not found: "+ioException);
+        }catch (JSONException jsonException)
+        {
+            Log.error("Error parsing JSON or missing key: "+jsonException);
+        }
+
+        return null;
+    }
+
+    private static JSONObject getPageNodeFromFile(String locatorFile, String pageName) throws IOException, JSONException {
+        String fileContent = new String(Files.readAllBytes(Paths.get(locatorFile)),StandardCharsets.UTF_8);
+        JSONObject parentNode = new JSONObject(fileContent);
+        return parentNode.has(pageName) ? parentNode.getJSONObject(pageName) : null;
     }
 
 }
