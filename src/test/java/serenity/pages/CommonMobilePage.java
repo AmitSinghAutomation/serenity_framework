@@ -3,6 +3,7 @@ package serenity.pages;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.remote.IOSMobileCapabilityType;
 import io.appium.java_client.remote.MobileCapabilityType;
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 import io.appium.java_client.service.local.AppiumServiceBuilder;
@@ -14,6 +15,7 @@ import net.thucydides.core.util.SystemEnvironmentVariables;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import utils.JsonUtils;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -62,6 +64,24 @@ public class CommonMobilePage extends PageObject {
             }catch (MalformedURLException e) {
                 e.printStackTrace();
             }
+        }else if (mobileExecutionType.toLowerCase().contentEquals("iosSimulator"))
+        {
+          File file = new File(this.jsonUtils.getValueFromSerenityproperties("appium.appFileLocation"));
+          capabilities.setCapability(MobileCapabilityType.DEVICE_NAME,this.jsonUtils.getValueFromSerenityproperties("appium.iosMobileName"));
+          capabilities.setCapability(MobileCapabilityType.PLATFORM_NAME,this.jsonUtils.getValueFromSerenityproperties("appium.iosPlatformName"));
+          capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION,this.jsonUtils.getValueFromSerenityproperties("appium.iosPlatformVersion"));
+          capabilities.setCapability(MobileCapabilityType.APP,file.getAbsolutePath());
+          capabilities.setCapability(MobileCapabilityType.UDID,this.jsonUtils.getValueFromSerenityproperties("appium.iosDeviceName"));
+          capabilities.setCapability(MobileCapabilityType.AUTOMATION_NAME,this.jsonUtils.getValueFromSerenityproperties("appium.automationType"));
+          capabilities.setCapability(IOSMobileCapabilityType.SIMPLE_ISVISIBLE_CHECK,true);
+          capabilities.setCapability(MobileCapabilityType.NO_RESET,this.jsonUtils.getValueFromSerenityproperties("appium.noReset"));
+          capabilities.setCapability(IOSMobileCapabilityType.AUTO_ACCEPT_ALERTS,this.jsonUtils.getValueFromSerenityproperties("appium.autoAcceptAlerts"));
+          capabilities.setCapability("appium:waitForIdleTimeout",this.jsonUtils.getValueFromSerenityproperties("appium.waitForIdleTimeout"));
+          try {
+              driver = new AppiumDriver<MobileElement>(new URL(appiumHub),capabilities);
+          } catch (MalformedURLException e) {
+              Log.info(e.getMessage());
+          }
         }
     }
 }
