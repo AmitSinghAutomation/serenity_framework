@@ -3,6 +3,7 @@ package serenity.pages;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.android.AndroidElement;
 import io.appium.java_client.remote.IOSMobileCapabilityType;
 import io.appium.java_client.remote.MobileCapabilityType;
 import io.appium.java_client.service.local.AppiumDriverLocalService;
@@ -20,8 +21,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class CommonMobilePage extends PageObject {
-    @Managed(driver = "appium")
-    AppiumDriver<MobileElement> driver;
+   @Managed(driver = "android")
+   AppiumDriver<MobileElement> driver;
     DesiredCapabilities capabilities;
     JsonUtils jsonUtils = new JsonUtils();
     public static AppiumDriverLocalService appiumService;
@@ -82,6 +83,40 @@ public class CommonMobilePage extends PageObject {
           } catch (MalformedURLException e) {
               Log.info(e.getMessage());
           }
+        }else if(mobileExecutionType.toLowerCase().contentEquals("iosRealDevice"))
+        {
+            File file = new File(this.jsonUtils.getValueFromSerenityproperties("appium.appFileLocation"));
+            capabilities.setCapability(MobileCapabilityType.DEVICE_NAME,this.jsonUtils.getValueFromSerenityproperties("appium.iosMobileName"));
+            capabilities.setCapability(MobileCapabilityType.PLATFORM_NAME,this.jsonUtils.getValueFromSerenityproperties("appium.iosPlatformName"));
+            capabilities.setCapability(MobileCapabilityType.PLATFORM_VERSION,this.jsonUtils.getValueFromSerenityproperties("appium.iosPlatformVersion"));
+            // comment following capability when you want to execute scripts by installing new app
+            // And comment out get Absolute Path capability
+            capabilities.setCapability(MobileCapabilityType.APP,file.getAbsolutePath());
+            capabilities.setCapability(MobileCapabilityType.UDID,this.jsonUtils.getValueFromSerenityproperties("appium.iosDeviceName"));
+            capabilities.setCapability(MobileCapabilityType.AUTOMATION_NAME,this.jsonUtils.getValueFromSerenityproperties("appium.automationType"));
+            // Uncomment following capability when you want to execute scripts on already installed app
+            // And comment out get Absolute Path capability
+            capabilities.setCapability(IOSMobileCapabilityType.BUNDLE_ID,this.jsonUtils.getValueFromSerenityproperties("appium.iosBundleId"));
+            capabilities.setCapability(IOSMobileCapabilityType.XCODE_ORG_ID,this.jsonUtils.getValueFromSerenityproperties("appium.iosXCodeOrgId"));
+            capabilities.setCapability(IOSMobileCapabilityType.XCODE_SIGNING_ID,this.jsonUtils.getValueFromSerenityproperties("appium.iosXCodeSigningId"));
+            capabilities.setCapability(IOSMobileCapabilityType.UPDATE_WDA_BUNDLEID,this.jsonUtils.getValueFromSerenityproperties("appium.iosUpdatedWdaBundleId"));
+            capabilities.setCapability(IOSMobileCapabilityType.SHOW_XCODE_LOG,this.jsonUtils.getValueFromSerenityproperties("appium.showIosLog"));
+            capabilities.setCapability("appium:settings[snapshotMaxDepth]",62);
+            capabilities.setCapability(MobileCapabilityType.FULL_RESET,this.jsonUtils.getValueFromSerenityproperties("appium.fullReset"));
+            capabilities.setCapability(MobileCapabilityType.NO_RESET,this.jsonUtils.getValueFromSerenityproperties("appium.noReset"));
+            capabilities.setCapability(IOSMobileCapabilityType.SIMPLE_ISVISIBLE_CHECK,true);
+            capabilities.setCapability(IOSMobileCapabilityType.WDA_STARTUP_RETRIES,3);
+            capabilities.setCapability(IOSMobileCapabilityType.WDA_LAUNCH_TIMEOUT,70000);
+            try {
+                driver = new AppiumDriver<MobileElement>(new URL(appiumHub),capabilities);
+            } catch (MalformedURLException e) {
+                Log.info(e.getMessage());
+            }
         }
+    }
+
+    public AppiumDriver<MobileElement> getAppiumDriver()
+    {
+        return driver;
     }
 }
