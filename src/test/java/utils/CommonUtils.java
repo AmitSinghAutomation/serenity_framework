@@ -2,6 +2,7 @@ package utils;
 
 import com.microsoft.applicationinsights.TelemetryClient;
 import logger.Log;
+import manageTestCases.ZephyrCloudConnector;
 import net.thucydides.core.model.TestOutcome;
 import net.thucydides.core.util.SystemEnvironmentVariables;
 
@@ -21,6 +22,8 @@ public class CommonUtils {
     static TelemetryClient telemetryClient = new TelemetryClient();
     static HashMap<String, String> appInsightMap = new HashMap<String,String>();
     static HashMap<String, Double> appInsightDuration = new HashMap<String,Double>();
+    static Map<String, Boolean> issueKeysWithStatus = new HashMap<String, Boolean>();
+    static List<String> issueKey = new ArrayList<>();
 
     public static List<String> getTestCaseList(Map<String, String> metaDataMap) {
 
@@ -137,4 +140,26 @@ public class CommonUtils {
        }
     }
 
+    public static Map<String, Boolean> getIssueKeyWithStatus() {
+        Log.info("Issue Keys with there status: "+issueKeysWithStatus);
+        return issueKeysWithStatus;
+    }
+
+    public static void markTestCasesExecutionStatus(Map<String, Boolean> issueKeyWithStatus) {
+        try{
+            issueKey.addAll(issueKeyWithStatus.keySet());
+            int executionSize = issueKeyWithStatus.size();
+            Log.info("Map size: "+issueKeyWithStatus.size());
+            for(int i = 0; i < executionSize; i++)
+            {
+                String key = issueKey.get(i).trim();
+                if(issueKeyWithStatus.containsKey(key))
+                {
+                    ZephyrCloudConnector.updateZephyrTestCasesStatus(i,issueKeyWithStatus.get(key));
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }

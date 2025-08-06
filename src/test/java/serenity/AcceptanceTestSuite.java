@@ -26,6 +26,7 @@ public class AcceptanceTestSuite extends SerenityStories {
     ZephyrCloudConnector zephyrCloudConnector;
     JiraDefectCreator jiraDefectCreator;
     EnvironmentVariables environmentVariables = SystemEnvironmentVariables.createEnvironmentVariables();
+    String executionFlag;
 
     @BeforeStories
     public void initialize()
@@ -56,15 +57,14 @@ public class AcceptanceTestSuite extends SerenityStories {
     public void executeTestsAndMarkStatus() throws URISyntaxException {
 
         try {
-            EnvironmentVariables envVars = SystemEnvironmentVariables.createEnvironmentVariables();
             TestOutcome latestTestOutCome = StepEventBus.getEventBus().getBaseStepListener().latestTestOutcome().orElse(null);
-            if ("YES".equalsIgnoreCase(envVars.getProperty("zephyr.connectionFlag"))) {
+            if ("YES".equalsIgnoreCase(environmentVariables.getProperty("zephyr.connectionFlag"))) {
                 Log.info("<--------Start of marking the testcases status in Zephyr-------->");
                 Map<String, String> metaDataMap = Serenity.getCurrentSession().getMetaData();
                 Log.info("Meta Data ---->" + metaDataMap);
                 List<String> testCaseNameList = CommonUtils.getTestCaseList(metaDataMap);
                 List<String> testCaseIssueKeyList = CommonUtils.getIssueKeyList(testCaseNameList);
-                String executionFlag = envVars.getProperty("zephyr.executionFlag");
+                executionFlag = environmentVariables.getProperty("zephyr.executionFlag");
                 if (latestTestOutCome != null) {
                     zephyrCloudConnector = new ZephyrCloudConnector(testCaseIssueKeyList, latestTestOutCome.isSuccess(), executionFlag);
                     CommonUtils.generateAppInsightData(testCaseNameList, latestTestOutCome);
@@ -74,12 +74,12 @@ public class AcceptanceTestSuite extends SerenityStories {
             if (latestTestOutCome != null && !latestTestOutCome.isSuccess()) {
                 CommonUtils.setFailedTestCasesAuthorDetails(latestTestOutCome);
             }
-            if ("YES".equalsIgnoreCase(envVars.getProperty("jira.connectionFlag")))
+            if ("YES".equalsIgnoreCase(environmentVariables.getProperty("jira.connectionFlag")))
             {
                 Log.info("<--------Checking the failed testcases for creating the defect in JIRA-------->");
                 Optional.ofNullable(latestTestOutCome).ifPresent(testOutcome -> {
                     String defectSummary = "AutoBug: " + testOutcome.getTitle();
-                    String defectCreationFlag = envVars.getProperty("jira.defectCreationFlag");
+                    String defectCreationFlag = environmentVariables.getProperty("jira.defectCreationFlag");
                     jiraDefectCreator = new JiraDefectCreator(defectSummary,testOutcome.getTestFailureMessage(),testOutcome.isSuccess(),defectCreationFlag);
                 });
                 Log.info("<--------Defects created for the failed testcases in JIRA-------->");
@@ -96,6 +96,18 @@ public class AcceptanceTestSuite extends SerenityStories {
         Log.info("<--------------------------Start Of Failed Test Error Analysis---------------------------------->");
         CommonUtils.getFailedTestCasesAuthorDetails();
         Log.info("<--------------------------End Of Failed Test Error Analysis---------------------------------->");
+    }
+
+    @AfterStories
+    public void testcasesIssueKeyWithStatus()
+    {
+        Log.info("<--------------------------Issue Key With Status Starts---------------------------------->");
+        if ("YES".equalsIgnoreCase(environmentVariables.getProperty(executionFlag)))
+        {
+         Map<String, Boolean> issueKeyWithStatus = CommonUtils.getIssueKeyWithStatus();
+         CommonUtils.markTestCasesExecutionStatus(issueKeyWithStatus);
+        }
+        Log.info("<--------------------------Issue Key With Status Ends---------------------------------->");
     }
 
 }

@@ -6,6 +6,7 @@ import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import logger.Log;
 import net.thucydides.core.util.SystemEnvironmentVariables;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -26,6 +27,10 @@ public class ZephyrCloudConnector {
     static String testVersionId = SystemEnvironmentVariables.createEnvironmentVariables().getProperty("zephyr.versionId");
     static String testCycleName = SystemEnvironmentVariables.createEnvironmentVariables().getProperty("zephyr.cycleName");
     static String testFolderName = SystemEnvironmentVariables.createEnvironmentVariables().getProperty("zephyr.folderName");
+    static String cycleId = null;
+    static String folderId = null;
+    static String executionId = null;
+    static Integer issueId = null;
 
     // Zephyr cloud connector constructor to execute and update the testcases status
     public ZephyrCloudConnector(List<String> testCaseIssueKeyList, Boolean testExecutionStatus, String executionFlag) throws URISyntaxException {
@@ -54,56 +59,90 @@ public class ZephyrCloudConnector {
     }
 
     // This method will update the testcase status based on test execution status
-    private void updateZephyrTestCasesStatus(int i, Boolean testExecutionStatus) throws URISyntaxException {
+    public static void updateZephyrTestCasesStatus(int i, Boolean testExecutionStatus) throws URISyntaxException {
+        String endPoint = null;
+        ZephyrCloudConnector.executionId = getExecutionId(i);
+        ZephyrCloudConnector.issueId = getIssueId(i);
         RestAssured.baseURI = zephyrBaseUrl;
-        String endPoint = "/public/rest/api/1.0/execution/" + getExecutionId(i);
+        endPoint = "/public/rest/api/1.0/execution/" + ZephyrCloudConnector.executionId;
         String jwtToken = generateNewToken("PUT", endPoint);
         RequestSpecification updateExecutionRequest = RestAssured.given();
         JSONObject parentLoad = new JSONObject();
         parentLoad.put("versionId", testVersionId);
         parentLoad.put("projectId", testProjectId);
         parentLoad.put("assigneeType", "currentUser");
-        parentLoad.put("id", getExecutionId(i));
-        parentLoad.put("cycleId", getCycleId(testCycleName));
-        parentLoad.put("issueId", getIssueId(i));
+        parentLoad.put("id", ZephyrCloudConnector.executionId);
+        parentLoad.put("cycleId", ZephyrCloudConnector.cycleId != null ? ZephyrCloudConnector.cycleId : getCycleId(testCycleName));
+        parentLoad.put("issueId", ZephyrCloudConnector.issueId);
 
         JSONObject childLoad = new JSONObject();
-        if(testExecutionStatus)
-        {
-            childLoad.put("id",1);
-            childLoad.put("description", "Test executed automatically and passed");
-        }else
-        {
-            childLoad.put("id",2);
-            childLoad.put("description", "Test executed automatically and failed");
-        }
+        childLoad.put("id",testExecutionStatus ? 1 : 2);
+        childLoad.put("description",testExecutionStatus ? "TEST EXECUTED AND PASSED"
+                : "TEST EXECUTED AND FAILED");
         parentLoad.put("status", childLoad);
-        Response updateExecutionResponse = updateExecutionRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).contentType("application/json").body(parentLoad.toString()).put(endPoint);
+        int retryCount = 3;
+        while(retryCount > 0)
+        {
+            try{
+                Response updateExecutionResponse = updateExecutionRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).contentType("application/json").body(parentLoad.toString()).put(endPoint);
+                Log.info("Inside Try: "+ i + " th test case status successfully updated having issueId: "+ZephyrCloudConnector.issueId);
+                Log.info("With endpoint: "+endPoint);
+                break;
+            }catch (Exception e){
+                retryCount--;
+                Response updateExecutionResponse = updateExecutionRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).contentType("application/json").body(parentLoad.toString()).put(endPoint);
+                Log.info("Inside Catch: "+ i + " th test case status successfully updated having issueId: "+ZephyrCloudConnector.issueId);
+                Log.info("With endpoint: "+endPoint);
+                Log.info("Retries left: "+retryCount);
+            }
+        }
     }
 
     // This method will return the zephyr execution id
-    private String getExecutionId(int i) throws URISyntaxException {
+    private static String getExecutionId(int i) throws URISyntaxException {
+        String endPoint = null;
         RestAssured.baseURI = zephyrBaseUrl;
-        String endPoint = "/public/rest/api/2.0/executions/search/folder/" + getFolderId(testFolderName) + "?projectId=" + testProjectId + "&versionId=" + testVersionId + "&cycleId=" + getCycleId(testCycleName);
+        if((ZephyrCloudConnector.folderId == null) || (ZephyrCloudConnector.cycleId == null))
+        {
+            endPoint = "/public/rest/api/2.0/executions/search/folder/" + getFolderId(testFolderName) + "?projectId=" + testProjectId + "&versionId=" + testVersionId + "&cycleId=" + getCycleId(testCycleName);
+        }else
+        {
+            endPoint = "/public/rest/api/2.0/executions/search/folder/" + ZephyrCloudConnector.folderId + "?projectId=" + testProjectId + "&versionId=" + testVersionId + "&cycleId=" + ZephyrCloudConnector.cycleId;
+        }
+        Log.info(i+" th execution");
+        Log.info("Endpoint: "+endPoint);
+        Log.info("Get Execution Id URL: "+zephyrBaseUrl+endPoint);
         String jwtToken = generateNewToken("GET", endPoint);
         RequestSpecification getFolderRequest = RestAssured.given();
         Response getExecutionResponse = getFolderRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).get(endPoint);
         String zephyrExecutionId = null;
         JsonPath jsonPath = getExecutionResponse.jsonPath();
         zephyrExecutionId = jsonPath.get("searchResult.searchObjectList[" +i+"].execution.id");
+        ZephyrCloudConnector.executionId = zephyrExecutionId;
         return zephyrExecutionId;
     }
 
     // This method will return the zephyr issue id
-    private Integer getIssueId(int i) throws URISyntaxException {
+    private static Integer getIssueId(int i) throws URISyntaxException {
+        String endPoint = null;
         RestAssured.baseURI = zephyrBaseUrl;
-        String endPoint = "/public/rest/api/2.0/executions/search/folder/" + getFolderId(testFolderName) + "?projectId=" + testProjectId + "&versionId=" + testVersionId + "&cycleId=" + getCycleId(testCycleName);
+        if((ZephyrCloudConnector.folderId == null) || (ZephyrCloudConnector.cycleId == null))
+        {
+            endPoint = "/public/rest/api/2.0/executions/search/folder/" + getFolderId(testFolderName) + "?projectId=" + testProjectId + "&versionId=" + testVersionId + "&cycleId=" + getCycleId(testCycleName);
+        }else
+        {
+            endPoint = "/public/rest/api/2.0/executions/search/folder/" + ZephyrCloudConnector.folderId + "?projectId=" + testProjectId + "&versionId=" + testVersionId + "&cycleId=" + ZephyrCloudConnector.cycleId;
+        }
+        Log.info(i+" th execution");
+        Log.info("Endpoint: "+endPoint);
+        Log.info("Get Issue Id URL: "+zephyrBaseUrl+endPoint);
         String jwtToken = generateNewToken("GET", endPoint);
         RequestSpecification getFolderRequest = RestAssured.given();
         Response getExecutionResponse = getFolderRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).get(endPoint);
         Integer zephyrIssueId = null;
         JsonPath jsonPath = getExecutionResponse.jsonPath();
         zephyrIssueId = jsonPath.get("searchResult.searchObjectList[" +i+"].execution.issueId");
+        ZephyrCloudConnector.issueId = zephyrIssueId;
         return zephyrIssueId;
     }
 
@@ -146,7 +185,7 @@ public class ZephyrCloudConnector {
     }
 
     // This method will return zephyr folder id
-    public String getFolderId(String testFolderName) throws URISyntaxException {
+    public static String getFolderId(String testFolderName) throws URISyntaxException {
         boolean isFolderFound = false;
         String folderId = null;
         RestAssured.baseURI = zephyrBaseUrl;
@@ -195,7 +234,7 @@ public class ZephyrCloudConnector {
     }
 
     // This method will create new zephyr test folder
-    public Map<String, String> createdNewZephyrTestFolder(String testFolderName) throws URISyntaxException {
+    public static Map<String, String> createdNewZephyrTestFolder(String testFolderName) throws URISyntaxException {
         HashMap<String, String> createdFolderMap = new HashMap<>();
         RestAssured.baseURI = zephyrBaseUrl;
         String endPoint = "/public/rest/api/1.0/folder?expand=&clonedFolderId=";
@@ -221,7 +260,7 @@ public class ZephyrCloudConnector {
     }
 
     // This method will return zephyr test cycle id
-    public String getCycleId(String testCycleName) throws URISyntaxException {
+    public static String getCycleId(String testCycleName) throws URISyntaxException {
         boolean isCycleFound = false;
         String cycleId = null;
         RestAssured.baseURI = zephyrBaseUrl;
@@ -271,7 +310,7 @@ public class ZephyrCloudConnector {
     }
 
     // This method will create new Zephyr Test Cycle
-    public Map<String, String> createdNewZephyrTestCycle(String testCycleName) throws URISyntaxException {
+    public static Map<String, String> createdNewZephyrTestCycle(String testCycleName) throws URISyntaxException {
         HashMap<String, String> createdCycleMap = new HashMap<>();
         RestAssured.baseURI = zephyrBaseUrl;
         String endPoint = "/public/rest/api/1.0/cycle?expand=&clonedCycleId=";
@@ -296,7 +335,7 @@ public class ZephyrCloudConnector {
     }
 
     // This method will return JWT Token on providing zephyr base url, access key, secret key and account id
-    public String generateNewToken(String requestType, String endPoint) throws URISyntaxException {
+    public static String generateNewToken(String requestType, String endPoint) throws URISyntaxException {
         String tokenId = null;
         ZFJCloudRestClient client = ZFJCloudRestClient.restBuilder(zephyrBaseUrl, zephyrAccessKey, zephyrSecretKey, accountId).build();
         JwtGenerator jwtGenerator = client.getJwtGenerator();
