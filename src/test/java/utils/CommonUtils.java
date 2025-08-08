@@ -162,4 +162,23 @@ public class CommonUtils {
             e.printStackTrace();
         }
     }
+
+    public static List<String> getIssueKeyListAfterScenario(List<String> testCaseNameList) {
+
+        Log.info("Testcases name list ----> "+testCaseNameList);
+        List<String> issueKeyListAfterScenario = new ArrayList<>();
+        for (String s: testCaseNameList) {
+            String [] issueKey = s.split(":");
+            issueKeyListAfterScenario.add(issueKey[0]);
+        }
+        Log.info("Issue Key List After Scenario ----> "+issueKeyListAfterScenario);
+        return issueKeyListAfterScenario;
+    }
+
+    public static void setIssueKeyWithStatus(List<String> testCaseIssueKeyListAfterScenario, TestOutcome latestTestOutCome) {
+
+        for (String issueKey : testCaseIssueKeyListAfterScenario) {
+            issueKeysWithStatus.put(issueKey,latestTestOutCome.isSuccess());
+        }
+    }
 }

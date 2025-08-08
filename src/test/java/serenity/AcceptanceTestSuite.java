@@ -16,6 +16,7 @@ import org.jbehave.core.annotations.ScenarioType;
 import utils.CommonUtils;
 import utils.JsonUtils;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
@@ -64,14 +65,25 @@ public class AcceptanceTestSuite extends SerenityStories {
                 Log.info("Meta Data ---->" + metaDataMap);
                 List<String> testCaseNameList = CommonUtils.getTestCaseList(metaDataMap);
                 List<String> testCaseIssueKeyList = CommonUtils.getIssueKeyList(testCaseNameList);
+                List<String> testCaseIssueKeyListAfterScenario = CommonUtils.getIssueKeyListAfterScenario(testCaseNameList);
                 executionFlag = environmentVariables.getProperty("zephyr.executionFlag");
                 if (latestTestOutCome != null) {
-                    zephyrCloudConnector = new ZephyrCloudConnector(testCaseIssueKeyList, latestTestOutCome.isSuccess(), executionFlag);
+                    if ("YES".equalsIgnoreCase(environmentVariables.getProperty(executionFlag))) {
+                        CommonUtils.setIssueKeyWithStatus(testCaseIssueKeyListAfterScenario,latestTestOutCome);
+                        ZephyrCloudConnector.getJobProgressTicketOnAddTestInFolder(testCaseIssueKeyListAfterScenario);
+                        zephyrCloudConnector = new ZephyrCloudConnector(testCaseIssueKeyList, latestTestOutCome.isSuccess(), executionFlag);
+                    }
                     CommonUtils.generateAppInsightData(testCaseNameList, latestTestOutCome);
                 }
                 Log.info("<--------End of marking the testcases status in Zephyr-------->");
             }
             if (latestTestOutCome != null && !latestTestOutCome.isSuccess()) {
+                if(environmentVariables.getProperty("ExecutionType").equalsIgnoreCase("android"))
+                {
+                    Log.info("---------------------------Resetting Chrome Starts--------------------------------------");
+                    Runtime.getRuntime().exec("adb shell pm clear com.android.chrome");
+                    Log.info("---------------------------Resetting Chrome Ends--------------------------------------");
+                }
                 CommonUtils.setFailedTestCasesAuthorDetails(latestTestOutCome);
             }
             if ("YES".equalsIgnoreCase(environmentVariables.getProperty("jira.connectionFlag")))
@@ -84,7 +96,7 @@ public class AcceptanceTestSuite extends SerenityStories {
                 });
                 Log.info("<--------Defects created for the failed testcases in JIRA-------->");
             }
-        }catch (NullPointerException e)
+        }catch (NullPointerException | IOException e)
         {
           Log.info("A Null Pointer Exception Occurred: "+e.getMessage());
         }

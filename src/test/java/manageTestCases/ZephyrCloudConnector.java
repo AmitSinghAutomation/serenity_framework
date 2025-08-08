@@ -160,77 +160,97 @@ public class ZephyrCloudConnector {
     }
 
     // This method will return the job progress ticket by adding the testcases in a folder
-    public String getJobProgressTicketOnAddTestInFolder(List<String> testCaseIssueKeyList) throws URISyntaxException {
+    public static void getJobProgressTicketOnAddTestInFolder(List<String> testCaseIssueKeyList) throws URISyntaxException {
+        String endPoint;
         RestAssured.baseURI = zephyrBaseUrl;
-        String endPoint = "/public/rest/api/1.0/executions/add/folder/" + getFolderId(testFolderName);
+        if(ZephyrCloudConnector.folderId == null){
+            ZephyrCloudConnector.folderId = getFolderId(testFolderName);
+        }
+        if(ZephyrCloudConnector.cycleId == null){
+            ZephyrCloudConnector.cycleId = getCycleId(testCycleName);
+        }
+        endPoint = "/public/rest/api/1.0/executions/add/folder/" + ZephyrCloudConnector.folderId;
         String jwtToken = generateNewToken("POST", endPoint);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("versionId", testVersionId);
         jsonObject.put("projectId", testProjectId);
         jsonObject.put("assigneeType","currentUser");
         jsonObject.put("method",1);
-        jsonObject.put("cycleId",getCycleId(testCycleName));
+        jsonObject.put("cycleId",ZephyrCloudConnector.cycleId);
 
         JSONArray jsonArray = new JSONArray();
-        for(int i = 0; i < testCaseIssueKeyList.size(); i++)
-        {
-            jsonArray.add(testCaseIssueKeyList.get(i));
-        }
+        jsonArray.addAll(testCaseIssueKeyList);
+
         jsonObject.put("issues", jsonArray);
+        int retryCount = 3;
+        while(retryCount > 0) {
+            try {
+                RequestSpecification addTestCasesToFolderRequest = RestAssured.given();
+                Response addTestCasesToFolderResponse = addTestCasesToFolderRequest.when().given().header("Authorization", jwtToken).body(jsonObject).header("zapiAccessKey", zephyrAccessKey).contentType("application/json").post(endPoint);
+                Log.info(addTestCasesToFolderResponse.getBody().asString());
+                break;
+            }catch (Exception e)
+            {
+                retryCount--;
+                RequestSpecification addTestCasesToFolderRequest = RestAssured.given();
+                Response addTestCasesToFolderResponse = addTestCasesToFolderRequest.when().given().header("Authorization", jwtToken).body(jsonObject).header("zapiAccessKey", zephyrAccessKey).contentType("application/json").post(endPoint);
+                Log.info(addTestCasesToFolderResponse.getBody().asString());
+            }
+        }
 
-        RequestSpecification addTestCasesToFolderRequest = RestAssured.given();
-        Response addTestCasesToFolderResponse = addTestCasesToFolderRequest.when().given().header("Authorization",jwtToken).body(jsonObject).header("zapiAccessKey", zephyrAccessKey).contentType("application/json").post(endPoint);
-
-        return addTestCasesToFolderResponse.getBody().asString();
     }
 
     // This method will return zephyr folder id
     public static String getFolderId(String testFolderName) throws URISyntaxException {
         boolean isFolderFound = false;
         String folderId = null;
-        RestAssured.baseURI = zephyrBaseUrl;
-        String endPoint = "/public/rest/api/1.0/folders?versionId=" + testVersionId + "&cycleId=" + getCycleId(testCycleName) + "&projectId=" + testProjectId;
-        String jwtToken = generateNewToken("GET",endPoint);
-        RequestSpecification getFolderRequest = RestAssured.given();
-        Response getFolderResponse = getFolderRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).get(endPoint);
-        JsonPath jsonPath = getFolderResponse.jsonPath();
-        List<Map<String, String>> parentMap = jsonPath.get("$");
-        Map<String, String> getFolderInformationMap = new HashMap<>();
-        for (int i = parentMap.size() - 1; i >=0; i-- )
-        {
-            if(parentMap.get(i).get("name").equalsIgnoreCase(testFolderName)) {
-                getFolderInformationMap = parentMap.get(i);
-                for (Map.Entry<String, String> myValueMap : getFolderInformationMap.entrySet()) {
+        String endPoint;
+        if(ZephyrCloudConnector.folderId == null) {
+            if(ZephyrCloudConnector.cycleId == null) {
+                RestAssured.baseURI = zephyrBaseUrl;
+                endPoint = "/public/rest/api/1.0/folders?versionId=" + testVersionId + "&cycleId=" + getCycleId(testCycleName) + "&projectId=" + testProjectId;
+            }else
+            {
+                endPoint = "/public/rest/api/1.0/folders?versionId=" + testVersionId + "&cycleId=" + ZephyrCloudConnector.cycleId + "&projectId=" + testProjectId;
+            }
+            String jwtToken = generateNewToken("GET", endPoint);
+            RequestSpecification getFolderRequest = RestAssured.given();
+            Response getFolderResponse = getFolderRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).get(endPoint);
+            JsonPath jsonPath = getFolderResponse.jsonPath();
+            List<Map<String, String>> parentMap = jsonPath.get("$");
+            Map<String, String> getFolderInformationMap = new HashMap<>();
+            for (int i = parentMap.size() - 1; i >= 0; i--) {
+                if (parentMap.get(i).get("name").equalsIgnoreCase(testFolderName)) {
+                    getFolderInformationMap = parentMap.get(i);
+                    for (Map.Entry<String, String> myValueMap : getFolderInformationMap.entrySet()) {
+                        if (myValueMap.getKey().equalsIgnoreCase("id")) {
+                            folderId = myValueMap.getValue();
+                            isFolderFound = true;
+                            ZephyrCloudConnector.folderId = folderId;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            if (!isFolderFound) {
+                // Call create zephyr test folder method and then return folder Id for the same
+                Map<String, String> createdFolderMap = new HashMap<>();
+                createdFolderMap = createdNewZephyrTestFolder(testFolderName);
+                for (Map.Entry<String, String> myValueMap : createdFolderMap.entrySet()) {
                     if (myValueMap.getKey().equalsIgnoreCase("id")) {
                         folderId = myValueMap.getValue();
-                        isFolderFound = true;
+                        ZephyrCloudConnector.folderId = folderId;
                         break;
-                    } else {
-                        continue;
                     }
                 }
-                break;
-            }
-        }
-        if(isFolderFound == false)
-        {
-            // Call create zephyr test folder method and then return folder Id for the same
-            Map<String, String> createdFolderMap = new HashMap<>();
-            createdFolderMap = createdNewZephyrTestFolder(testFolderName);
-            for(Map.Entry<String, String> myValueMap : createdFolderMap.entrySet())
-            {
-                if (myValueMap.getKey().equalsIgnoreCase("id"))
-                {
-                    folderId = myValueMap.getValue();
-                    break;
-                } else
-                {
-                    continue;
-                }
-            }
 
+            }
+            return folderId;
+        }else
+        {
+            return ZephyrCloudConnector.folderId;
         }
-        return folderId;
     }
 
     // This method will create new zephyr test folder
@@ -243,7 +263,11 @@ public class ZephyrCloudConnector {
         bodyRequest.put("name",testFolderName);
         bodyRequest.put("versionId", String.valueOf(testVersionId));
         bodyRequest.put("projectId", String.valueOf(testProjectId));
-        bodyRequest.put("cycleId",String.valueOf(getCycleId(testCycleName)));
+        if(ZephyrCloudConnector.cycleId == null){
+            bodyRequest.put("cycleId",String.valueOf(getCycleId(testCycleName)));
+        }else{
+            bodyRequest.put("cycleId",ZephyrCloudConnector.cycleId);
+        }
         RequestSpecification createZephyrTestFolderRequest = RestAssured.given();
         Response createZephyrTestFolderResponse = createZephyrTestFolderRequest.when().given().header("Authorization",jwtToken).body(bodyRequest).header("zapiAccessKey", zephyrAccessKey).contentType("application/json").post(endPoint);
         if(createZephyrTestFolderResponse.statusCode() == 200)
@@ -263,50 +287,47 @@ public class ZephyrCloudConnector {
     public static String getCycleId(String testCycleName) throws URISyntaxException {
         boolean isCycleFound = false;
         String cycleId = null;
-        RestAssured.baseURI = zephyrBaseUrl;
-        String endPoint = "/public/rest/api/1.0/cycles/search?projectId=" + testProjectId + "&versionId=" + testVersionId;
-        String jwtToken = generateNewToken("GET",endPoint);
-        RequestSpecification getTestCycleRequest = RestAssured.given();
-        Response getCycleIdResponse = getTestCycleRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).get(endPoint);
-        JsonPath jsonPath = getCycleIdResponse.jsonPath();
-        List<Map<String, String>> parentMap = jsonPath.get("$");
-        Map<String, String> getCycleInformationMap;
-        for (int i = parentMap.size() - 1; i >=0; i-- )
-        {
-            getCycleInformationMap = parentMap.get(i);
-            for(Map.Entry<String, String> myValueMap : getCycleInformationMap.entrySet())
-            {
-                if(myValueMap.getKey().equalsIgnoreCase("id"))
-                {
-                    cycleId = myValueMap.getValue();
-                    isCycleFound = true;
+        if(ZephyrCloudConnector.cycleId == null) {
+            RestAssured.baseURI = zephyrBaseUrl;
+            String endPoint = "/public/rest/api/1.0/cycles/search?projectId=" + testProjectId + "&versionId=" + testVersionId;
+            String jwtToken = generateNewToken("GET", endPoint);
+            RequestSpecification getTestCycleRequest = RestAssured.given();
+            Response getCycleIdResponse = getTestCycleRequest.when().given().header("Authorization", jwtToken).header("zapiAccessKey", zephyrAccessKey).get(endPoint);
+            JsonPath jsonPath = getCycleIdResponse.jsonPath();
+            List<Map<String, String>> parentMap = jsonPath.get("$");
+            Map<String, String> getCycleInformationMap;
+            for (int i = parentMap.size() - 1; i >= 0; i--) {
+                if(parentMap.get(i).get("name").equalsIgnoreCase(testCycleName)) {
+                    getCycleInformationMap = parentMap.get(i);
+                    for (Map.Entry<String, String> myValueMap : getCycleInformationMap.entrySet()) {
+                        if (myValueMap.getKey().equalsIgnoreCase("id")) {
+                            cycleId = myValueMap.getValue();
+                            isCycleFound = true;
+                            ZephyrCloudConnector.cycleId = cycleId;
+                            break;
+                        }
+                    }
                     break;
-                }else
-                {
-                    continue;
                 }
             }
-            break;
-        }
-        if(isCycleFound == false)
-        {
-            // Call create zephyr test cycle method and then return cycle Id for the same
-            Map<String, String> createdCycleMap = new HashMap<>();
-            createdCycleMap = createdNewZephyrTestCycle(testCycleName);
-            for(Map.Entry<String, String> myValueMap : createdCycleMap.entrySet())
-            {
-                if (myValueMap.getKey().equalsIgnoreCase("id"))
-                {
-                    cycleId = myValueMap.getValue();
-                    break;
-                } else
-                {
-                    continue;
+            if (!isCycleFound) {
+                // Call create zephyr test cycle method and then return cycle Id for the same
+                Map<String, String> createdCycleMap;
+                createdCycleMap = createdNewZephyrTestCycle(testCycleName);
+                for (Map.Entry<String, String> myValueMap : createdCycleMap.entrySet()) {
+                    if (myValueMap.getKey().equalsIgnoreCase("id")) {
+                        cycleId = myValueMap.getValue();
+                        ZephyrCloudConnector.cycleId = cycleId;
+                        break;
+                    }
                 }
-            }
 
+            }
+            return cycleId;
+        }else
+        {
+            return ZephyrCloudConnector.cycleId;
         }
-        return cycleId;
     }
 
     // This method will create new Zephyr Test Cycle
