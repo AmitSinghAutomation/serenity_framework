@@ -13,6 +13,8 @@ import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.pages.PageObject;
 import net.thucydides.core.util.EnvironmentVariables;
 import net.thucydides.core.util.SystemEnvironmentVariables;
+import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import utils.JsonUtils;
 
@@ -120,5 +122,39 @@ public class CommonMobilePage extends PageObject {
         return driver;
     }
 
+    public void switchView(String input)
+    {
+        if(mobileExecutionType.toLowerCase().contentEquals("android"))
+        {
+            java.util.Set<String> contextHandles = null;
+            if(input.contains("Web"))
+            {
+               do {
+                   contextHandles = driver.getContextHandles();
+                   Log.info("Context handles from mobile: "+contextHandles.toString()+"Size: "+contextHandles.size());
+                   if(super.element(By.id("com.android.chrome:id/signin_fre_dismiss_button")).isPresent()){
+                       int retryCount = 2;
+                       while(retryCount > 0){
+                           try {
+                               driver.findElement(By.id("com.android.chrome:id/signin_fre_dismiss_button")).click();
+                               break;
+                           }catch (StaleElementReferenceException e){
+                               retryCount--;
+                               driver.findElement(By.id("com.android.chrome:id/signin_fre_dismiss_button")).click();
+                           }
+                       }
+                   }
+               }while((contextHandles.toString().contains("WEBVIEW_chrome")));
+               driver.context("WEBVIEW_chrome");
+               driver.manage().deleteAllCookies();
+            }else{
+                driver.context("NATIVE_APP");
+            }
+        }
+    }
 
+    public void switchToMobileApp(){
+        driver.context("NATIVE_APP");
+        driver.activateApp("com.company.package");
+    }
 }
