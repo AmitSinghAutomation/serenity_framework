@@ -19,6 +19,7 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import utils.JsonUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -28,6 +29,8 @@ public class CommonMobilePage extends PageObject {
     DesiredCapabilities capabilities;
     JsonUtils jsonUtils = new JsonUtils();
     public static AppiumDriverLocalService appiumService;
+    File file;
+    Process process;
     EnvironmentVariables environmentVariables = SystemEnvironmentVariables.createEnvironmentVariables();
     public String mobileExecutionType = environmentVariables.getProperty("ExecutionType");
     public String appiumHub = environmentVariables.getProperty("appium.hub");
@@ -156,5 +159,130 @@ public class CommonMobilePage extends PageObject {
     public void switchToMobileApp(){
         driver.context("NATIVE_APP");
         driver.activateApp("com.company.package");
+    }
+
+    public void uploadFile(String objectName,String pageName, String type){
+        String filePath = null;
+        String deviceFilePath = null;
+        switch(type.toUpperCase())
+        {
+            case "PNG":
+                filePath = environmentVariables.getProperty("image.png");
+                break;
+            case "JPG":
+                filePath = environmentVariables.getProperty("image.jpg");
+                break;
+            case "SVG":
+                filePath = environmentVariables.getProperty("image.svg");
+                break;
+            case "EXCEL":
+                filePath = environmentVariables.getProperty("image.excel");
+                break;
+            case "DOC":
+                filePath = environmentVariables.getProperty("image.doc");
+                break;
+            case "JPEG":
+                filePath = environmentVariables.getProperty("image.jpeg");
+                break;
+            case "TXT":
+                filePath = environmentVariables.getProperty("image.txt");
+                break;
+            case "GIF":
+                filePath = environmentVariables.getProperty("image.gif");
+                break;
+            case "PDF":
+                filePath = environmentVariables.getProperty("image.pdf");
+                break;
+            default:
+                Log.info("Unsupported file type");
+        }
+        file = new File(filePath);
+        if(!file.exists())
+        {
+            Log.error("File does not exist: "+filePath);
+        }
+        deviceFilePath = "/sdcard/Download/" + file.getName();
+        Log.info("File upload path: "+deviceFilePath);
+        try {
+            String [] pushCmd = {"adb","push",filePath,deviceFilePath};
+            process = Runtime.getRuntime().exec(pushCmd);
+            int pushExitCode = process.waitFor();
+            if(pushExitCode == 0)
+            {
+                Log.info("File uploaded successfully: "+deviceFilePath);
+                String [] scanCmd = {"adb","shell","am","broadcast",
+                        "-a","android.intent.action.MEDIA_SCANNER_SCAN_FILE",
+                        "-d","file://" + deviceFilePath};
+                process = Runtime.getRuntime().exec(scanCmd);
+                int scanExitCode = process.waitFor();
+                if(scanExitCode == 0)
+                {
+                    Log.info("Media scanner notified successfully for: "+deviceFilePath);
+                }else{
+                    Log.error("Failed to notify media scanner. Exit code: " + scanExitCode);
+                }
+            }else{
+                Log.error("Failed to push file. Exit Code: " + pushExitCode);
+            }
+        } catch (Exception e) {
+            Log.error("Error during file push or media scan notification: " + e.getMessage());
+        }
+    }
+
+    public void removeFile(String objectName,String pageName, String type){
+        String filePath = null;
+        String deviceFilePath = null;
+        switch(type.toUpperCase())
+        {
+            case "PNG":
+                filePath = environmentVariables.getProperty("image.png");
+                break;
+            case "JPG":
+                filePath = environmentVariables.getProperty("image.jpg");
+                break;
+            case "SVG":
+                filePath = environmentVariables.getProperty("image.svg");
+                break;
+            case "EXCEL":
+                filePath = environmentVariables.getProperty("image.excel");
+                break;
+            case "DOC":
+                filePath = environmentVariables.getProperty("image.doc");
+                break;
+            case "JPEG":
+                filePath = environmentVariables.getProperty("image.jpeg");
+                break;
+            case "TXT":
+                filePath = environmentVariables.getProperty("image.txt");
+                break;
+            case "GIF":
+                filePath = environmentVariables.getProperty("image.gif");
+                break;
+            case "PDF":
+                filePath = environmentVariables.getProperty("image.pdf");
+                break;
+            default:
+                Log.info("Unsupported file type");
+        }
+        file = new File(filePath);
+        if(!file.exists())
+        {
+            Log.error("File does not exist: "+filePath);
+        }
+        deviceFilePath = "/sdcard/Download/" + file.getName();
+        Log.info("File to remove from device path: "+deviceFilePath);
+        try {
+            String [] rmCmd = {"adb","shell","rm",deviceFilePath};
+            process = Runtime.getRuntime().exec(rmCmd);
+            int rmExitCode = process.waitFor();
+            if(rmExitCode == 0)
+            {
+                Log.info("File removed successfully from path: "+deviceFilePath);
+            }else{
+                Log.error("Failed to remove file. Exit Code: " + rmExitCode);
+            }
+        } catch (Exception e) {
+            Log.error("Error during file removal: " + e.getMessage());
+        }
     }
 }
