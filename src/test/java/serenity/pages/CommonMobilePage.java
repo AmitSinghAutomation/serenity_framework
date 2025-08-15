@@ -2,26 +2,39 @@ package serenity.pages;
 
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
+import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.AndroidElement;
+import io.appium.java_client.android.nativekey.AndroidKey;
+import io.appium.java_client.android.nativekey.KeyEvent;
 import io.appium.java_client.remote.IOSMobileCapabilityType;
 import io.appium.java_client.remote.MobileCapabilityType;
 import io.appium.java_client.service.local.AppiumDriverLocalService;
 import io.appium.java_client.service.local.AppiumServiceBuilder;
+import io.appium.java_client.touch.WaitOptions;
+import io.appium.java_client.touch.offset.PointOption;
 import logger.Log;
 import net.thucydides.core.annotations.Managed;
 import net.thucydides.core.pages.PageObject;
 import net.thucydides.core.util.EnvironmentVariables;
 import net.thucydides.core.util.SystemEnvironmentVariables;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.PointerInput;
+import org.openqa.selenium.interactions.Sequence;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import utils.JsonUtils;
+import utils.WebUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
+import java.util.*;
 
 public class CommonMobilePage extends PageObject {
    @Managed(driver = "android")
@@ -31,6 +44,20 @@ public class CommonMobilePage extends PageObject {
     public static AppiumDriverLocalService appiumService;
     File file;
     Process process;
+    List<MobileElement> elementList;
+    List<String> actualList, sortedList;
+    String parent, child;
+    Set<String> windowIds;
+    Iterator<String> stringIterator;
+    Actions actions;
+    TouchAction touchAction;
+    private int startX;
+    private int startY;
+    private int endY;
+    private int edgeScrollIteration;
+    private double edgeScroll1,edgeScroll2;
+    private int maxScrollIteration;
+    private double scroll1,scroll2;
     EnvironmentVariables environmentVariables = SystemEnvironmentVariables.createEnvironmentVariables();
     public String mobileExecutionType = environmentVariables.getProperty("ExecutionType");
     public String appiumHub = environmentVariables.getProperty("appium.hub");
@@ -284,5 +311,184 @@ public class CommonMobilePage extends PageObject {
         } catch (Exception e) {
             Log.error("Error during file removal: " + e.getMessage());
         }
+    }
+
+    public boolean verifySorting(String objectName, String pageName, String sortType){
+        By object = WebUtils.returnByBasedOnPageNameAndObjectName(pageName, objectName);
+        elementList = driver.findElements(object);
+        actualList = new ArrayList<>();
+        for(WebElement element : elementList){
+            String text = element.getText();
+            if((!text.equals("-")) && (!text.isEmpty()) && (!text.equals("YOU")))
+            {
+                actualList.add(text);
+            }
+        }
+        sortedList = new ArrayList<>(actualList);
+        if(sortType.equalsIgnoreCase("ascending")){
+            Collections.sort(sortedList, String.CASE_INSENSITIVE_ORDER);
+        }else if(sortType.equalsIgnoreCase("descending")){
+            Collections.sort(sortedList, String.CASE_INSENSITIVE_ORDER);
+            Collections.reverse(sortedList);
+        }else {
+            return false;
+        }
+        boolean isSorted = sortedList.equals(actualList);
+        Log.info("Sorted in " +sortType+ " order: "+sortedList);
+        return isSorted;
+    }
+
+    public void scrollToElementAndroid()
+    {
+        ((AndroidDriver<MobileElement>)driver).findElementByAndroidUIAutomator(
+                "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView("
+                        + "new UiSelector().text(\"ElementTextToScrollTo\"))");
+
+    }
+
+    public void scrollOutside(){
+        Dimension size = driver.manage().window().getSize();
+
+        int startX = (int) (size.width * 0.02); // 2 % from the left edge
+        int startY = (int) (size.height * 0.6); // Start from 60% of the screen
+        int endY =  (int) (size.height * 0.2); // Move to 20% (scrolling upward)
+
+        PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH,"finger");
+
+        Sequence scroll = new Sequence(finger,1)
+                .addAction(finger.createPointerMove(Duration.ZERO,PointerInput.Origin.viewport(),startX,startY))
+                .addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg())) // Press down
+                .addAction(finger.createPointerMove(Duration.ofSeconds(1),PointerInput.Origin.viewport(),startX,endY))
+                .addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg())); // Lift finger
+        driver.perform(Arrays.asList(scroll));
+    }
+
+    public void switchToWindowHandles(){
+        parent = driver.getWindowHandle();
+        windowIds = driver.getWindowHandles();
+        stringIterator = windowIds.iterator();
+        while (stringIterator.hasNext())
+        {
+            child = stringIterator.next();
+            if(!child.equals(parent))
+            {
+                driver.switchTo().window(child);
+                System.out.println(driver.switchTo().window(child).getTitle());
+            }
+        }
+    }
+
+    public void softKeyboardHideAndroid(){
+        ((AndroidDriver<MobileElement>)driver).pressKey(new KeyEvent(AndroidKey.ENTER));
+    }
+
+    public void pressAndHold(String pageName, String locatorName){
+        By object = WebUtils.returnByBasedOnPageNameAndObjectName(pageName, locatorName);
+        actions = new Actions(driver);
+        actions.moveToElement(driver.findElement(object))
+                .clickAndHold()
+                .pause(Duration.ofSeconds(2))
+                .release().build().perform();
+    }
+
+    public void setScrollingParametersToAvoidEdgeOfElement(int maxIterations, double percentage){
+        edgeScrollIteration = maxIterations;
+        edgeScroll1 = 0.2;
+        edgeScroll2 = edgeScroll1 +(percentage/100);
+    }
+
+    public void setCoordinatesForScroll(double start, double end){
+        Dimension size = driver.manage().window().getSize();
+
+        startX = (int) (size.width / 2); // 2 % from the left edge
+        startY = (int) (size.height * start); // Start from 60% of the screen
+        endY =  (int) (size.height * end); // Move to 20% (scrolling upward)
+    }
+
+    public void scrollAtLastToAvoidEdgeOfElement(String direction){
+        if(direction.equalsIgnoreCase("down")){
+           setCoordinatesForScroll(edgeScroll2,edgeScroll1);
+        }else if(direction.equalsIgnoreCase("up")){
+            setCoordinatesForScroll(edgeScroll1,edgeScroll2);
+        }else{
+            Log.info("Invalid direction for scroll");
+        }
+        for(int i = 0; i < edgeScrollIteration; i++){
+           mobileScroll(startX,startY,endY);
+        }
+        setScrollingParametersToAvoidEdgeOfElement(1,10);
+    }
+
+    public void mobileScroll(int startX, int startY, int endY){
+        touchAction = new TouchAction(driver);
+        touchAction.press(PointOption.point(startX,startY))
+                .waitAction(WaitOptions.waitOptions(Duration.ofSeconds(1)))
+                .moveTo(PointOption.point(startX,endY)).release().perform();
+    }
+
+    public boolean scrollUntilElement(String direction, String objectName, String pageName, String [] stringToBeReplaceFromLocator){
+        By object;
+
+        if(direction.equalsIgnoreCase("down")){
+            setCoordinatesForScroll(edgeScroll2,edgeScroll1);
+        }else if(direction.equalsIgnoreCase("up")){
+            setCoordinatesForScroll(edgeScroll1,edgeScroll2);
+        }else{
+            Log.info("Invalid direction for scroll");
+        }
+        boolean flag = true;
+        touchAction = new TouchAction(driver);
+
+        if(stringToBeReplaceFromLocator.length == 0) {
+            object = WebUtils.returnByBasedOnPageNameAndObjectName(pageName, objectName);
+        }else{
+            object = WebUtils.returnByBasedOnPageNameAndObjectName(pageName, objectName,stringToBeReplaceFromLocator);
+        }
+
+        int counter = 0;
+        while(counter <= maxScrollIteration){
+            try {
+                Log.info("Finding Element");
+                if(mobileExecutionType.toLowerCase().contentEquals("ios")){
+                    if(driver.findElement(object).getAttribute("visible").equalsIgnoreCase("false")){
+                        throw new org.openqa.selenium.NoSuchElementException("");
+                    }
+                    if(counter != 0){
+                        scrollAtLastToAvoidEdgeOfElement(direction);
+                    }
+                    break;
+                }else{
+                    driver.findElement(object);
+                    Log.info("scrolled till particular element");
+                    if(counter != 0){
+                        scrollAtLastToAvoidEdgeOfElement(direction);
+                    }
+                    break;
+                }
+            }catch (org.openqa.selenium.NoSuchElementException e){
+                counter++;
+                switch (direction.toUpperCase()){
+                    case "UP":
+                        Log.info("Scrolling UP to find element");
+                        mobileScroll(startX,startY,endY);
+                        break;
+                    case "DOWN":
+                        Log.info("Scrolling DOWN to find element");
+                        mobileScroll(startX,startY,endY);
+                        break;
+                }
+            }
+            if(counter >= maxScrollIteration){
+                flag = false;
+            }
+        }
+        setScrollingParameters(70,20);
+        return flag;
+    }
+
+    public void setScrollingParameters(int maxIterations, double percentage){
+        maxScrollIteration = maxIterations;
+        scroll1 = 0.2;
+        scroll2 = scroll1 + (percentage/100);
     }
 }

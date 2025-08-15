@@ -13,6 +13,7 @@ import utils.WebUtils;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -334,7 +335,7 @@ public class CommonPage extends PageObject {
     {
         By source = WebUtils.returnByBasedOnPageNameAndObjectName(pageName, sourceObject);
         By target = WebUtils.returnByBasedOnPageNameAndObjectName(pageName, targetObject);
-        actions.clickAndHold(super.element(source)).moveToElement(super.element(target)).release().build().perform();
+        actions.clickAndHold(super.element(source)).moveToElement(super.element(target)).pause(Duration.ofSeconds(1)).release().build().perform();
     }
 
     public void scrollToElement(String pageName, String locatorName)
